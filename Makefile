@@ -1,15 +1,13 @@
 CC=g++
 
-MPI=-DMPI
-MPICC = mpicc
+MPICC = mpic++
 
-DEBUG=0
-CFLAGS=-g -O3 -Wall -DDEBUG=$(DEBUG)
+CFLAGS=-g -O3 -Wall -std=c++11
 LDFLAGS= -lm
 
-CFILES_SEQ = main.cpp
-CFILES_PAR = main.cpp
-HFILES = util.h
+CFILES_SEQ = src/crun-seq.cpp
+CFILES_PAR = src/crun-mpi.cpp	
+HFILES = src/util.h
 
 all: crun-seq crun-mpi
 
@@ -17,7 +15,7 @@ crun-seq: $(CFILES_SEQ) $(HFILES)
 	$(CC) $(CFLAGS) -o crun-seq $(CFILES_SEQ) $(LDFLAGS)
 
 crun-mpi: $(CFILES_PAR) $(XCFILES) $(HFILES) $(XHFILES)
-	$(MPICC) $(CFLAGS) $(MPI) -o crun-mpi $(CFILES_PAR) $(XCFILES) $(LDFLAGS)
+	$(MPICC) $(CFLAGS) -o crun-mpi $(CFILES_PAR) $(XCFILES) $(LDFLAGS)
 
 clean:
 	rm -f *~ *.pyc
