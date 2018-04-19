@@ -153,7 +153,7 @@ def main():
                 output.write("{}->{}\n".format(i, j))
     '''
 
-    with open("dataset_38507_8.txt", "r") as data:
+    with open("../data/dataset_38507_8.txt", "r") as data:
         n = int(data.readline().strip())
         T = {}
         assign = {}
