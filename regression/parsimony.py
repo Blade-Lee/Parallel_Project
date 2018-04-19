@@ -2,6 +2,9 @@ import copy
 from collections import deque
 
 
+# T is undirected, rooted
+# T format: {a : [b, c], b: [a], ...}
+# tag format: {a : 0, b : 1, c : 0}
 def find_ripe_node_one_tree_unrooted(T, tag):
     for each in T:
         if tag[each] == 0:
@@ -25,31 +28,31 @@ def hamming_distance(a, b):
     return count
 
 
-def check(a, b):
+def not_equal(a, b):
     if a == b:
         return 0
     return 1
 
 
-# T is undirected
+# T is undirected, rooted
+# T format: {a : [b, c], b: [a], ...}
+# character format: {a: 'A', b: 'C', 'd': 'C', ...} (for all leaf nodes)
 def small_parsimony_one_tree_unrooted(T, character):
-    # T is undirected, rooted
-    # format: T : {a : [b, c, d], b: [a], ...}
     backtrack = {}
     s_k_v = {}
     tag = {}
     for v in T:
+        # v is leaf node
         if len(T[v]) == 1:
             tag[v] = 1
             for k in {"A", "T", "C", "G"}:
-                if character.get(v, "Q") == k:
+                if character[v] == k:
                     s_k_v.setdefault(v, {})[k] = 0
                 else:
                     s_k_v.setdefault(v, {})[k] = 100000000
         else:
             tag[v] = 0
 
-    v = None
     while True:
         option = find_ripe_node_one_tree_unrooted(T, tag)
         if not option[0]:
@@ -68,74 +71,138 @@ def small_parsimony_one_tree_unrooted(T, character):
             first = 1000000000
             second = 1000000000
 
-            for cur_daughter in {"A", "T", "C", "G"}:
-                temp = s_k_v[daughter][cur_daughter] + check(cur_daughter, k)
+            for cur_char in {"A", "T", "C", "G"}:
+                temp = s_k_v[daughter][cur_char] + \
+                    not_equal(cur_char, k)
                 if temp < first:
                     first = temp
-                    min_daughter = cur_daughter
+                    min_daughter_char = cur_char
 
-            for cur_son in {"A", "T", "C", "G"}:
-                temp = s_k_v[son][cur_son] + check(cur_son, k)
+            for cur_char in {"A", "T", "C", "G"}:
+                temp = s_k_v[son][cur_char] + not_equal(cur_char, k)
                 if temp < second:
                     second = temp
-                    min_son = cur_son
+                    min_son_char = cur_char
 
+            # if we choose char 'k' as our current node 'v'
+            # the score for node 'v' is 'first + second'
+            # the daughter of node 'v' is 'min_daughter_char'
+            # the son of node 'v' is 'min_son_char'
             s_k_v.setdefault(v, {})[k] = first + second
+            backtrack[v][k][daughter] = min_daughter_char
+            backtrack[v][k][son] = min_son_char
 
-            backtrack[v][k][daughter] = min_daughter
-            backtrack[v][k][son] = min_son
+    # last 'v' is the root
+    # 'root_char' is the char of root for minimal score
+    minimal_score = 1000000000
+    root = v
+    for k in s_k_v[root]:
+        if s_k_v[root][k] < minimal_score:
+            minimal_score = s_k_v[root][k]
+            root_char = k
 
-    result = 1000000000
-    for k in s_k_v[v]:
-        if s_k_v[v][k] < result:
-            result = s_k_v[v][k]
-            first_str = k
+    left = T[root][0]
+    right = T[root][1]
+    left_str = backtrack[root][root_char][left]
+    right_str = backtrack[root][root_char][right]
 
-    left = T[v][0]
-    right = T[v][1]
-    left_str = backtrack[v][first_str][left]
-    right_str = backtrack[v][first_str][right]
-
+    # remove 'root' from backtrack
     backtrack.setdefault(left, {}).setdefault(left_str, {})[right] = right_str
     backtrack.setdefault(right, {}).setdefault(right_str, {})[left] = left_str
 
-    del T[v]
+    del T[root]
 
-    T[left] = [i for i in T[left] if i != v]
+    T[left] = [i for i in T[left] if i != root]
     T[left].append(right)
-    T[right] = [i for i in T[right] if i != v]
+    T[right] = [i for i in T[right] if i != root]
     T[right].append(left)
 
-    v = left
-    first_str = left_str
+    root = left
+    root_char = left_str
 
     # New Tree format, undirected, unrooted
     # new_tree = {node: {"str": xxx, "children": [...]}, ...}
-
-    new_tree = {v: {"str": first_str, "children": []}}
-
+    new_tree = {root: {"str": root_char, "children": []}}
     store = deque()
-    new_store = deque()
-    store.append((v, first_str))
-    new_store.append(v)
+    store.append((root, root_char))
     visited = set()
 
+    # use backtrack to obtain the new tree with minimal score
     while len(store) > 0:
         options = store.popleft()
         father = options[0]
-        father_str = options[1]
+        father_char = options[1]
         new_tree[father]["children"] = T[father]
-        if father == v or len(T[father]) > 1:
+        if father == root or len(T[father]) > 1:
             for son in T[father]:
-                if son in backtrack[father][father_str] and son not in visited:
-                    son_str = backtrack[father][father_str][son]
-                    new_tree[son] = {"str": son_str, "children": []}
-                    store.append((son, son_str))
-                    new_store.append(son)
+                if son in backtrack[father][father_char] and son not in visited:
+                    son_char = backtrack[father][father_char][son]
+                    new_tree[son] = {"str": son_char, "children": []}
+                    store.append((son, son_char))
 
         visited.add(father)
 
-    return result, new_tree, v
+    return minimal_score, new_tree, root
+
+
+def run_small_parsimony_one_tree_unrooted(T, character_list):
+    # T is undirected, rooted
+    # T format: {a : [b, c], b: [a], ...}
+    # backtrack tree format, undirected, unrooted
+    # backtrack_tree = {node: {"str": xxx, "children": [...]}, ...}
+    tree_list = []
+
+    # print("Small input tree")
+    # for i, j in T.items():
+    #     print("{} : {}".format(i, j))
+    # for i in character_list:
+    #     print(i)
+
+    total = 0
+    for each in character_list:
+        # backtrack_tree is undirected
+        result, backtrack_tree, root = small_parsimony_one_tree_unrooted(
+            copy.deepcopy(T), each)
+        tree_list.append(backtrack_tree)
+        total += result
+
+    # construct the combined tree
+    combined_tree = {}
+
+    store = deque()
+    store.append(root)
+    visited = set()
+
+    while len(store) > 0:
+        cur = store.popleft()
+        str_list = [each[cur]["str"] for each in tree_list]
+
+        combined_tree.setdefault(cur, {})["str"] = "".join(str_list)
+        combined_tree[cur]["children"] = tree_list[0][cur]["children"]
+
+        for son in combined_tree[cur]["children"]:
+            if son not in visited:
+                store.append(son)
+        visited.add(cur)
+
+    output = ["{}\n".format(total)]
+
+    store = deque()
+    store.append(root)
+    visited = set()
+
+    while len(store) > 0:
+        cur = store.popleft()
+        cur_str = combined_tree[cur]["str"]
+        for son in combined_tree[cur]["children"]:
+            son_str = combined_tree[son]["str"]
+            output.append("{}->{}:{}\n".format(cur_str, son_str,
+                                               hamming_distance(cur_str, son_str)))
+            if son not in visited:
+                store.append(son)
+        visited.add(cur)
+
+    return total, output, combined_tree
 
 
 def switch_subtree(a, x, b, y, T):
@@ -230,67 +297,6 @@ def nearest_neighbors_combined(a, b, T):
             a, a_candidates[0], b, b_candidates[1], T_2)
 
     return T_1, T_2
-
-
-def run_small_parsimony_one_tree_unrooted(T, character_list):
-    # T is undirected, rooted
-    # format: T : {a : [b, c, d], b: [a], ...}
-    # backtrack tree format, undirected, unrooted
-    # backtrack_tree = {node: {"str": xxx, "children": [...]}, ...}
-    tree_list = []
-
-    # print "Small input tree"
-    # for i, j in T.iteritems():
-    #    print "{} : {}".format(i, j)
-
-    total = 0
-    for each in character_list:
-        # backtrack_tree is undirected
-        result, backtrack_tree, root = small_parsimony_one_tree_unrooted(
-            copy.deepcopy(T), each)
-        tree_list.append(backtrack_tree)
-        total += result
-
-    combined_tree = {}
-
-    store = deque()
-    store.append(root)
-    visited = set()
-
-    while len(store) > 0:
-        cur = store.popleft()
-        str_list = [each[cur]["str"] for each in tree_list]
-        combined_tree.setdefault(cur, {})["str"] = "".join(str_list)
-        combined_tree[cur]["children"] = tree_list[0][cur]["children"]
-        for son in combined_tree[cur]["children"]:
-            if son not in visited:
-                store.append(son)
-        visited.add(cur)
-
-    output = ["{}\n".format(total)]
-
-    store = deque()
-    store.append(root)
-    visited = set()
-
-    while len(store) > 0:
-        cur = store.popleft()
-        cur_str = combined_tree[cur]["str"]
-        for son in combined_tree[cur]["children"]:
-            son_str = combined_tree[son]["str"]
-            output.append("{}->{}:{}\n".format(cur_str, son_str,
-                                               hamming_distance(cur_str, son_str)))
-            #output.append("{}->{}:{}\n".format(son_str, cur_str, hamming_distance(cur_str, son_str)))
-            if son not in visited:
-                store.append(son)
-        visited.add(cur)
-
-    # print "Small output tree"
-    # for i, j in combined_tree.iteritems():
-    #    print "{} : {}".format(i, j)
-    # print
-
-    return total, output, combined_tree
 
 
 def decompose_combined_tree(combined_tree):
