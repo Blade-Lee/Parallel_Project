@@ -4,8 +4,7 @@
 using namespace std;
 
 int main() {
-  cout << "Hello World!" << endl;
-  auto ptr = test(5);
-  cout << "int: " << ptr->num << endl;
+  runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
+
   return 0;
 }
