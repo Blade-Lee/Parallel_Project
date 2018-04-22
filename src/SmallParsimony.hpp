@@ -44,11 +44,11 @@ public:
         
         this->num_char_trees = num_char_trees;
         this->num_nodes = num_nodes; // Noted that this number has included root
-        this->string_list = shared_ptr<string>(new string[this->num_nodes - 1], [](string* p) {delete[] p; });
+        this->string_list = shared_ptr<string>(new string[this->num_nodes - 1], [](string* p) {delete[] p;});
         // init all to "" for convenience of concatenating chars
         string* string_list_ptr = this->string_list.get();
         
-        unique_ptr<int[]> map_char_idx(new int[26]()); // map each char to a index
+        unique_ptr<char[]> map_char_idx(new char[26]()); // map each char to a index
         map_char_idx.get()['A' - 'A'] = 0;
         map_char_idx.get()['C' - 'A'] = 1;
         map_char_idx.get()['G' - 'A'] = 2;
@@ -57,6 +57,7 @@ public:
             string_list_ptr[i] = "";
             this->char_list.get()[i] = map_char_idx[this->char_list.get()[i]-'A'];
         }
+        this->char_list.get()[this->num_nodes - 1] = map_char_idx[this->char_list.get()[this->num_nodes - 1]-'A'];
     }
     ~SmallParsimony(){
         cout<<"Small Parsimony decostructed."<<endl;
@@ -135,8 +136,8 @@ public:
             // begin DP
             for(int i = 0; i < 4; i++){
                 
-                unsigned char min_left_char_idx = '#';
-                unsigned char min_right_char_idx = '#';
+                char min_left_char_idx = '#';
+                char min_right_char_idx = '#';
                 
                 int left_min_score = int(1e8);
                 int right_min_score = int(1e8);
@@ -170,30 +171,29 @@ public:
                 back_track_arr.get()[back_track_arr_offset] = min_left_char_idx;
                 back_track_arr.get()[back_track_arr_offset + 1] = min_right_char_idx;
             }
-            
-            // calcuate the final score and fill up the char array (tree)
-            queue<int> q;
-            q.push(root);
-            char_list[root] = root_char_idx;
-            while(!q.empty()){
-                int parent = q.front();
-                q.pop();
-                char min_char_idx = char_list[parent];
-                int child_idx = this->idx_arr.get()[parent];
-                if(child_idx != -1){ // if it is not a leaf
-                    int left_child_id = this->children_arr.get()[child_idx];
-                    int right_child_id = this->children_arr.get()[child_idx + 1];
-                    
-                    int tmp_idx = parent + 2 * min_char_idx;
-                    char left_min_char_idx = back_track_arr.get()[tmp_idx];
-                    char right_min_char_idx = back_track_arr.get()[tmp_idx + 1];
-                    
-                    char_list[left_child_id] = left_min_char_idx;
-                    char_list[right_child_id] = right_min_char_idx;
-                    
-                    q.push(left_child_id);
-                    q.push(right_child_id);
-                }
+        }
+        // No ripe node any more, root is the fianl root now, calcuate the final score and fill up the char array (tree)
+        queue<int> q;
+        q.push(root);
+        char_list[root] = root_char_idx;
+        while(!q.empty()){
+            int parent = q.front();
+            q.pop();
+            char min_char_idx = char_list[parent];
+            int child_idx = this->idx_arr.get()[parent];
+            if(child_idx != -1){ // if it is not a leaf
+                int left_child_id = this->children_arr.get()[child_idx];
+                int right_child_id = this->children_arr.get()[child_idx + 1];
+                
+                int tmp_idx = parent * 8 + 2 * min_char_idx;
+                char left_min_char_idx = back_track_arr.get()[tmp_idx];
+                char right_min_char_idx = back_track_arr.get()[tmp_idx + 1];
+                
+                char_list[left_child_id] = left_min_char_idx;
+                char_list[right_child_id] = right_min_char_idx;
+                
+                if(this->idx_arr.get()[left_child_id] != -1)q.push(left_child_id);
+                if(this->idx_arr.get()[right_child_id] != -1)q.push(right_child_id);
             }
         }
         return min_parsimony_score;

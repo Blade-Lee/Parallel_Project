@@ -62,10 +62,22 @@ void runBaseline(string file_name, string outfile_name) {
     covertUndirectedToDirected(num_undirected_nodes, num_leaves, undirected_idx,
                                neighbor_arr, directed_idx, children_arr);
     initializeCharList(char_list, assign, num_char_trees, num_directed_nodes);
-    
+    cout<<"number of undirected nodes: "<< num_undirected_nodes<<" number of directed nodes: "<< num_directed_nodes<<" number of char trees: "<< num_char_trees<<endl;
+    for(int i = 0; i < num_directed_nodes; i++){
+        cout<<directed_idx.get()[i]<<" ";
+    }
+    cout<<endl;
+    for(int i = 0; i < num_directed_internal_nodes * 2; i++){
+        cout<<children_arr.get()[i]<<" ";
+    }
+    cout<<endl;
+    for(int i = 0; i < num_directed_nodes * num_char_trees; i++){
+        cout<<char_list.get()[i]<<" ";
+    }
+    cout<<endl;
     // run small parsimony
     shared_ptr<SmallParsimony> small_parsimony = make_shared<SmallParsimony>(directed_idx, children_arr, char_list, num_char_trees, num_directed_nodes);
-    small_parsimony->run_small_parsimony_string();
+//    small_parsimony->run_small_parsimony_string();
     cout<<"Small Parsimony total score is:"<<small_parsimony->total_score<<endl;
 }
 
