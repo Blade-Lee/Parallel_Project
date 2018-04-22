@@ -1,5 +1,6 @@
 import copy
 from collections import deque
+from parsimony_util import *
 
 
 # T is undirected, rooted
@@ -205,23 +206,6 @@ def run_small_parsimony_one_tree_unrooted(T, character_list):
     return total, output, combined_tree
 
 
-def switch_subtree(a, x, b, y, T):
-
-    if y is not None:
-        T[a].append(y)
-        T[y].append(a)
-        T[b] = [i for i in T[b] if i != y]
-        T[y] = [i for i in T[y] if i != b]
-
-    if x is not None:
-        T[b].append(x)
-        T[x].append(b)
-        T[a] = [i for i in T[a] if i != x]
-        T[x] = [i for i in T[x] if i != a]
-
-    return T
-
-
 def switch_subtree_combined(a, x, b, y, T):
 
     if y is not None:
@@ -239,35 +223,6 @@ def switch_subtree_combined(a, x, b, y, T):
     return T
 
 
-def nearest_neighbors(a, b, T):
-
-    T_1 = copy.deepcopy(T)
-    T_2 = copy.deepcopy(T)
-
-    a_candidates = [i for i in T[a] if i != b]
-    b_candidates = [i for i in T[b] if i != a]
-
-    '''
-    if len(a_candidates) == 0 and len(b_candidates) == 0:
-        pass
-    elif len(a_candidates) == 2 and len(b_candidates) == 0:
-        T_1 = switch_subtree(a, a_candidates[0], b, None, T_1)
-        T_2 = switch_subtree(a, a_candidates[1], b, None, T_2)
-    elif len(a_candidates) == 0 and len(b_candidates) == 2:
-        T_1 = switch_subtree(a, None, b, b_candidates[0], T_1)
-        T_2 = switch_subtree(a, None, b, b_candidates[1], T_2)
-    else:
-        T_1 = switch_subtree(a, a_candidates[0], b, b_candidates[0], T_1)
-        T_2 = switch_subtree(a, a_candidates[0], b, b_candidates[1], T_2)
-    '''
-
-    if len(a_candidates) == 2 and len(b_candidates) == 2:
-        T_1 = switch_subtree(a, a_candidates[0], b, b_candidates[0], T_1)
-        T_2 = switch_subtree(a, a_candidates[0], b, b_candidates[1], T_2)
-
-    return T_1, T_2
-
-
 def nearest_neighbors_combined(a, b, T):
 
     T_1 = copy.deepcopy(T)
@@ -275,20 +230,6 @@ def nearest_neighbors_combined(a, b, T):
 
     a_candidates = [i for i in T[a]["children"] if i != b]
     b_candidates = [i for i in T[b]["children"] if i != a]
-
-    '''
-    if len(a_candidates) == 0 and len(b_candidates) == 0:
-        pass
-    elif len(a_candidates) == 2 and len(b_candidates) == 0:
-        T_1 = switch_subtree(a, a_candidates[0], b, None, T_1)
-        T_2 = switch_subtree(a, a_candidates[1], b, None, T_2)
-    elif len(a_candidates) == 0 and len(b_candidates) == 2:
-        T_1 = switch_subtree(a, None, b, b_candidates[0], T_1)
-        T_2 = switch_subtree(a, None, b, b_candidates[1], T_2)
-    else:
-        T_1 = switch_subtree(a, a_candidates[0], b, b_candidates[0], T_1)
-        T_2 = switch_subtree(a, a_candidates[0], b, b_candidates[1], T_2)
-    '''
 
     if len(a_candidates) == 2 and len(b_candidates) == 2:
         T_1 = switch_subtree_combined(
@@ -306,41 +247,16 @@ def decompose_combined_tree(combined_tree):
     # combined_tree = {node: {"str": xxx, "children": [...]}, ...}
     # nodes are fully assigned with strings
 
-    assign = {}
     temp_T = {i: combined_tree[i]["children"] for i in combined_tree}
+    insert_root(temp_T)
 
-    new_node = max([i for i in temp_T]) + 1
-    left = [i for i in temp_T][0]
-    right = temp_T[left][0]
-
-    if len(temp_T[left]) == 1:
-        del temp_T[left]
-    else:
-        temp_T[left] = [i for i in temp_T[left] if i != right]
-
-    if len(temp_T[right]) == 1:
-        del temp_T[right]
-    else:
-        temp_T[right] = [i for i in temp_T[right] if i != left]
-
-    temp_T.setdefault(left, []).append(new_node)
-    temp_T.setdefault(right, []).append(new_node)
-    temp_T.setdefault(new_node, []).append(left)
-    temp_T[new_node].append(right)
-
-    # temp_T is rooted now
-
-    for i in combined_tree:
-        assign[combined_tree[i]['str']] = i
+    assign = {}
+    for i in temp_T:
+        if len(temp_T[i]) == 1:
+            assign[combined_tree[i]['str']] = i
 
     character_list = []
-
-    for each in assign:
-        while len(character_list) < len(each):
-            character_list.append({})
-        for i in range(len(each)):
-            if len(temp_T[assign[each]]) == 1:
-                character_list[i][assign[each]] = each[i]
+    construct_char_list(character_list, assign)
 
     # T is undirected, rooted
     # format: T : {a : [b, c, d], b: [a], ...}
@@ -353,10 +269,13 @@ def nearest_neighbor_interchage(T, character_list):
     # Combined Tree format, undirected, unrooted
     # combined_tree = {node: {"str": xxx, "children": [...]}, ...}
 
-    total_output = []
+    total_output_map = {}
 
     score = 1000000000
 
+    # we need this step to transform T to new_tree
+    # T is undirected, rooted
+    # new_tree is undirected, unrooted
     new_score, output, new_tree = run_small_parsimony_one_tree_unrooted(
         T, character_list)
 
@@ -366,9 +285,8 @@ def nearest_neighbor_interchage(T, character_list):
         score = new_score
         tree = new_tree
         if not firstone:
-            for i in temp_output:
-                total_output.append(i)
-            total_output.append('\n')
+            total_output_map.setdefault(new_score, []).append(
+                "".join(temp_output) + "\n")
         if firstone:
             firstone = False
 
@@ -398,4 +316,4 @@ def nearest_neighbor_interchage(T, character_list):
                     new_tree = temp_tree
                     temp_output = output
 
-    return total_output
+    return total_output_map
