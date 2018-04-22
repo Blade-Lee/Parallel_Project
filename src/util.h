@@ -110,8 +110,8 @@ void covertUndirectedToDirected(const int num_undirected_nodes,
   int right = tmp_neighbor_arr[tmp_neighbor_arr[left]];
   int next_children = 0;
 
-  for (int i = 0; i < (num_undirected_nodes + 1 - num_leaves) * 2; ++i) {
-    tmp_children_arr[i] = -1;
+  for (int i = 0; i < num_undirected_nodes + 1; ++i) {
+    tmp_directed_idx[i] = -1;
   }
 
   auto temp_start = next_children;
@@ -252,6 +252,13 @@ void runBaseline(string file_name, string outfile_name) {
   //     cout << "--" << temp_arr[j] << endl;
   //   }
   // }
+
+  // cout << "------------------------" << endl;
+
+  // for (int i = 0; i < num_directed_nodes; ++i) {
+  //   cout << (int)temp_idx[i] << " ";
+  // }
+  // cout << endl;
 
   initializeCharList(char_list, assign, num_char_trees, num_directed_nodes);
 
