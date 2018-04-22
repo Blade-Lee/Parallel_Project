@@ -115,7 +115,9 @@ void runBaseline(string file_name, string outfile_name) {
   //   }
   //   cout << endl;
   // }
-  // cout<<"number of undirected nodes: "<< num_undirected_nodes<<" number of directed nodes: "<< num_directed_nodes<<" number of char trees: "<< num_char_trees<<endl;
+  // cout<<"number of undirected nodes: "<< num_undirected_nodes<<" number of
+  // directed nodes: "<< num_directed_nodes<<" number of char trees: "<<
+  // num_char_trees<<endl;
   //   for(int i = 0; i < num_directed_nodes; i++){
   //       cout<<directed_idx.get()[i]<<" ";
   //   }
@@ -128,16 +130,22 @@ void runBaseline(string file_name, string outfile_name) {
   //       cout<<char_list.get()[i]<<" ";
   //   }
   //   cout<<endl;
-    // run small parsimony
-   //  shared_ptr<SmallParsimony> small_parsimony = make_shared<SmallParsimony>(directed_idx, children_arr, char_list, num_char_trees, num_directed_nodes);
-   // small_parsimony->run_small_parsimony_string();
-   //  cout<<"Small Parsimony total score is:"<<small_parsimony->total_score<<endl;
-    // run large parsimony
-    shared_ptr<LargeParsimony> large_parsimony = make_shared<LargeParsimony>(neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves, num_char_trees);
-    large_parsimony->run_large_parsimony();
-    cout<<"the minimum large parsimony score is: "<< large_parsimony->min_large_parsimony_score<<endl;
+  // run small parsimony
+  //  shared_ptr<SmallParsimony> small_parsimony =
+  //  make_shared<SmallParsimony>(directed_idx, children_arr, char_list,
+  //  num_char_trees, num_directed_nodes);
+  // small_parsimony->run_small_parsimony_string();
+  //  cout<<"Small Parsimony total score
+  //  is:"<<small_parsimony->total_score<<endl;
+  // run large parsimony
+  shared_ptr<LargeParsimony> large_parsimony = make_shared<LargeParsimony>(
+      neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves,
+      num_char_trees);
+  large_parsimony->run_large_parsimony();
+  cout << "the minimum large parsimony score is: "
+       << large_parsimony->min_large_parsimony_score << endl;
 }
 
-int main(int argc, const char * argv[]) {
-    runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
+int main(int argc, const char* argv[]) {
+  runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
 }
