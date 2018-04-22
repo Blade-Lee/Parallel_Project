@@ -107,7 +107,7 @@ void covertUndirectedToDirected(const int num_undirected_nodes,
 
   int root = num_undirected_nodes;
   int left = num_undirected_nodes - 1;
-  int right = tmp_neighbor_arr[tmp_neighbor_arr[left]];
+  int right = tmp_neighbor_arr[tmp_undirected_idx[left]];
   int next_children = 0;
 
   for (int i = 0; i < num_undirected_nodes + 1; ++i) {

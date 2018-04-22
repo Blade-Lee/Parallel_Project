@@ -55,15 +55,29 @@ public:
         map_char_idx.get()['T' - 'A'] = 3;
         for(int i = 0; i < this->num_nodes - 1; i++){
             string_list_ptr[i] = "";
-            this->char_list.get()[i] = map_char_idx[this->char_list.get()[i]-'A'];
         }
-        this->char_list.get()[this->num_nodes - 1] = map_char_idx[this->char_list.get()[this->num_nodes - 1]-'A'];
+
+        int char_list_len = this->num_char_trees * this->num_nodes;
+        for(int i = 0; i < char_list_len; i++){
+            char cur_c = this->char_list.get()[i];
+            if(cur_c == 'A' || cur_c == 'C' || cur_c == 'G' || cur_c == 'T'){
+                this->char_list.get()[i] = map_char_idx.get()[cur_c - 'A'];
+            }
+        }
     }
     ~SmallParsimony(){
         cout<<"Small Parsimony decostructed."<<endl;
     }
     void run_small_parsimony_string(){
         this->total_score = 0;
+
+        // cout<<"char list: "<<endl;
+        // for(int i = 0; i < this->num_char_trees * this->num_nodes; i++)
+        //     cout<<int(this->char_list.get()[i])<<" ";
+        // cout<<endl;
+
+        char ACGT_arr[4] = {'A', 'C', 'G', 'T'};
+
         for(int i = 0; i < this->num_char_trees; i++){
             char *cur_char_list_idx = this->char_list.get() + i * this->num_nodes;
             int cur_score = run_small_parsimony_char(cur_char_list_idx);
@@ -73,9 +87,13 @@ public:
             
             // append char list to current string list
             for(int i = 0; i < this->num_nodes - 1; i++){
-                this->string_list.get()[i] += cur_char_list_idx[i];
+                this->string_list.get()[i] += ACGT_arr[int(cur_char_list_idx[i])];
             }
         }
+
+        // for(int i = 0; i < this->num_nodes - 1; i++){
+        //     cout<<this->string_list.get()[i]<<" ";
+        // }
     }
 
     int run_small_parsimony_char(char* char_list){ // use current char list and global tree structure to calculate
@@ -118,6 +136,7 @@ public:
                     son =this->children_arr.get()[bias + 1];
                     if(tag.get()[daughter] && tag.get()[son]){
                         ripe_node = i;
+                        break;
                     }
                 }
             }
@@ -132,37 +151,44 @@ public:
             min_parsimony_score = infinity;
             root_char_idx = '#';
             tag.get()[root] = 1;
-            
+            // cout<<"############################################################################################"<<endl;
+            // cout<<"root is: "<<root<<"  root's char is: "<<int(char_list[root])<<endl;
             // begin DP
             for(int i = 0; i < 4; i++){
-                
+                // cout<<"root's char--"<<i<<"---score is: "<< int(s_v_k.get()[4*root + i])<<"  daughter is: "<< daughter<<"  son is: "<< son <<endl;
                 char min_left_char_idx = '#';
                 char min_right_char_idx = '#';
                 
-                int left_min_score = int(1e8);
-                int right_min_score = int(1e8);
+                int left_min_score = infinity;
+                int right_min_score = infinity;
                 
                 int offset_left = 4 * daughter;
                 int offset_right = 4 * son;
                 
                 for(int left_i = 0; left_i < 4; left_i++){
-                    int tmp_score = s_v_k.get()[offset_left + left_i] + int(i==left_i);
+                    int tmp_score = s_v_k.get()[offset_left + left_i] + int(i!=left_i);
+                    // cout<<"daughter--"<<left_i<<"--'s score is: "<<s_v_k.get()[offset_left + left_i]<<endl;
                     if(tmp_score < left_min_score){
                         left_min_score = tmp_score;
                         min_left_char_idx = left_i;
                     }
                 }
-                
+                // cout<<"left_min_score: "<<left_min_score<<endl;
                 for(int right_i = 0; right_i < 4; right_i++){
-                    int tmp_score = s_v_k.get()[offset_right + right_i] + int(i==right_i);
+                    int tmp_score = s_v_k.get()[offset_right + right_i] + int(i!=right_i);
+                    // cout<<"son--"<<right_i<<"--'s score is: "<<s_v_k.get()[offset_right + right_i]<<endl;
                     if(tmp_score < right_min_score){
                         right_min_score = tmp_score;
                         min_right_char_idx = right_i;
                     }
                 }
-                
+                // cout<<"right_min_score: "<<right_min_score<<endl;
                 int cur_total_score = left_min_score + right_min_score;
                 s_v_k.get()[root * 4 + i] = cur_total_score;
+
+                // cout<<"$$$$$$$$$$$$$s_v_k---"<<root<<"---i---"<<i<<" = "<<cur_total_score;
+                
+                // cout<<"min score is: "<< min_parsimony_score<< " cur_score is: "<< cur_total_score<<endl;
                 if(cur_total_score < min_parsimony_score){
                     min_parsimony_score = cur_total_score;
                     root_char_idx = i;
@@ -170,6 +196,8 @@ public:
                 int back_track_arr_offset =root * 8 + i * 2;
                 back_track_arr.get()[back_track_arr_offset] = min_left_char_idx;
                 back_track_arr.get()[back_track_arr_offset + 1] = min_right_char_idx;
+
+                // cout<<"------------------------------------------------------------------------------------"<<endl;
             }
         }
         // No ripe node any more, root is the fianl root now, calcuate the final score and fill up the char array (tree)
