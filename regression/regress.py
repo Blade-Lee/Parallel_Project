@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append('../parsimony_python')
 from parsimony import *
 
 
@@ -114,7 +115,7 @@ def run_python_baseline(file_name, outfile_name):
 
     # T is undirected, rooted
     # format: T : {a : [b, c, d], b: [a], ...}
-    total, result, combined_tree = run_small_parsimony_one_tree_unrooted(
+    result = nearest_neighbor_interchage(
         T, character_list)
 
     write_result(outfile_name, result)

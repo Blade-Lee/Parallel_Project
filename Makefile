@@ -7,7 +7,7 @@ LDFLAGS= -lm
 
 CFILES_SEQ = src/crun-seq.cpp
 CFILES_PAR = src/crun-mpi.cpp	
-HFILES = src/util.h
+HFILES = src/util.h src/SmallParsimony.hpp src/LargeParsimony.hpp
 
 all: crun-seq crun-mpi
 
@@ -21,4 +21,4 @@ clean:
 	rm -f *~ *.pyc
 	rm -rf *.dSYM
 	rm -f *.tgz
-	rm -f crun crun-seq crun-mpi
+	rm -f crun-seq crun-mpi
