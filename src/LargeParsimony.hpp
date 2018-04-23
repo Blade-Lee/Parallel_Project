@@ -248,6 +248,11 @@ class LargeParsimony {
                                                          // this->edges;
                                                          // this->visited
     cout<<"*****************************************************************"<<this->min_large_parsimony_score<<endl;
+    cout<<"index array:"<<endl;
+      for(int i = 0;i<this->num_nodes;i++)
+              cout<<i<<":"<<this->unrooted_undirectional_idx_arr.get()[i]<<" ";
+    cout<<endl;
+    cout<<"neighbor array:"<<endl;
       for(int i = 0;i<(this->num_nodes-1)*2;i++)
           cout<<i<<":"<<this->unrooted_undirectional_tree.get()[i]<<" ";
     cout<<"*****************************************************************"<<endl;
