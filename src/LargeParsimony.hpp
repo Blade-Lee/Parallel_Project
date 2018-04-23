@@ -235,7 +235,7 @@ class LargeParsimony {
           this->unrooted_undirectional_tree.get()[i];
     }
     while (new_score < this->min_large_parsimony_score) {
-      cout << "new score is: " << new_score << endl;
+      // cout << "new score is: " << new_score << endl;
 
       this->min_large_parsimony_score = new_score;
       this->string_list = new_string_list;
@@ -247,9 +247,13 @@ class LargeParsimony {
           get_edges_from_unrooted_undirectional_tree();  // write to
                                                          // this->edges;
                                                          // this->visited
-
+    cout<<"*****************************************************************"<<this->min_large_parsimony_score<<endl;
+      for(int i = 0;i<(this->num_nodes-1)*2;i++)
+          cout<<i<<":"<<this->unrooted_undirectional_tree.get()[i]<<" ";
+    cout<<"*****************************************************************"<<endl;
       // For each edge, exchange the internal edges to get 2 new trees
-      for (int i = 0; i < this->num_edges; i += 2) {
+      int length = this->num_edges * 2;
+      for (int i = 0; i < length; i += 2) {
         int a = edges.get()[i];
         int b = edges.get()[i + 1];
         int a_child_idx = this->unrooted_undirectional_idx_arr.get()[a];
@@ -314,6 +318,7 @@ class LargeParsimony {
               this->cur_rooted_char_list, this->num_char_trees,
               this->num_nodes + 1);
           small_parsimony.get()->run_small_parsimony_string();
+          cout<<"*****"<<small_parsimony.get()->total_score<<endl;
           // cout<<"new_score is: "<<new_score<<" small_parsimony->total_score
           // is: "<<small_parsimony.get()->total_score<<endl;
           if (small_parsimony.get()->total_score < new_score) {  // compare

@@ -142,8 +142,8 @@ void runBaseline(string file_name, string outfile_name) {
       neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves,
       num_char_trees);
   large_parsimony->run_large_parsimony();
-  cout << "the minimum large parsimony score is: "
-       << large_parsimony->min_large_parsimony_score << endl;
+  // cout << "the minimum large parsimony score is: "
+  //      << large_parsimony->min_large_parsimony_score << endl;
 }
 
 int main(int argc, const char* argv[]) {

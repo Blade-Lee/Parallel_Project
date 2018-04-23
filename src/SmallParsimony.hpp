@@ -39,7 +39,7 @@ class SmallParsimony {
   SmallParsimony(shared_ptr<int> idx_arr, shared_ptr<int> children_arr,
                  shared_ptr<char> char_list, int num_char_trees,
                  int num_nodes) {
-    cout << "Small Parsimony constructed." << endl;
+    // cout << "Small Parsimony constructed." << endl;
     this->char_list = char_list;
     this->idx_arr = idx_arr;
     this->children_arr = children_arr;
@@ -69,7 +69,9 @@ class SmallParsimony {
       }
     }
   }
-  ~SmallParsimony() { cout << "Small Parsimony decostructed." << endl; }
+  ~SmallParsimony() { 
+    // cout << "Small Parsimony decostructed." << endl; 
+  }
   void run_small_parsimony_string() {
     this->total_score = 0;
 
