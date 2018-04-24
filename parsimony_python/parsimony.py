@@ -186,24 +186,7 @@ def run_small_parsimony_one_tree_unrooted(T, character_list):
                 store.append(son)
         visited.add(cur)
 
-    output = ["{}\n".format(total)]
-
-    store = deque()
-    store.append(root)
-    visited = set()
-
-    while len(store) > 0:
-        cur = store.popleft()
-        cur_str = combined_tree[cur]["str"]
-        for son in combined_tree[cur]["children"]:
-            son_str = combined_tree[son]["str"]
-            output.append("{}->{}:{}\n".format(cur_str, son_str,
-                                               hamming_distance(cur_str, son_str)))
-            if son not in visited:
-                store.append(son)
-        visited.add(cur)
-
-    return total, output, combined_tree
+    return total, combined_tree
 
 
 def switch_subtree_combined(a, x, b, y, T):
@@ -269,17 +252,14 @@ def nearest_neighbor_interchage(T, character_list):
     # Combined Tree format, undirected, unrooted
     # combined_tree = {node: {"str": xxx, "children": [...]}, ...}
 
-    total_output_map = {}
-
     score = 1000000000
 
     # we need this step to transform T to new_tree
     # T is undirected, rooted
     # new_tree is undirected, unrooted
-    new_score, output, new_tree = run_small_parsimony_one_tree_unrooted(
+    new_score, new_tree = run_small_parsimony_one_tree_unrooted(
         T, character_list)
 
-    output_list = []
     new_tree_list = [new_tree]
     while new_score < score:
         score = new_score
@@ -305,18 +285,14 @@ def nearest_neighbor_interchage(T, character_list):
                 for NeighborTree in neighbors:
                     rooted_tree, character_list = decompose_combined_tree(
                         NeighborTree)
-                    neighborScore, output, temp_tree = run_small_parsimony_one_tree_unrooted(
+                    neighborScore, temp_tree = run_small_parsimony_one_tree_unrooted(
                         rooted_tree, character_list)
                     if neighborScore < new_score:
                         new_score = neighborScore
                         new_tree_list = [temp_tree]
-                        output_list = [output]
                     elif neighborScore == new_score:
                         new_tree_list.append(temp_tree)
-                        output_list.append(output)
 
-    for temp_output in output_list:
-        total_output_map.setdefault(new_score, []).append(
-            "".join(temp_output) + "\n")
+    output_str_set = {serialize_tree(score, tree) for tree in new_tree_list}
 
-    return total_output_map
+    return "\n\n".join([i for i in output_str_set])

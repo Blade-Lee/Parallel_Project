@@ -24,10 +24,10 @@ def run_python_baseline(file_name, outfile_name):
 
     # T is undirected, rooted
     # format: T : {a : [b, c, d], b: [a], ...}
-    result_map = nearest_neighbor_interchage(
+    result = nearest_neighbor_interchage(
         T, character_list)
 
-    write_result_map(outfile_name, result_map)
+    write_result(outfile_name, result)
 
 
 def main():
