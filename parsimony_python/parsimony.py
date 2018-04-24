@@ -5,38 +5,6 @@ from parsimony_util import *
 
 # T is undirected, rooted
 # T format: {a : [b, c], b: [a], ...}
-# tag format: {a : 0, b : 1, c : 0}
-def find_ripe_node_one_tree_unrooted(T, tag):
-    for each in T:
-        if tag[each] == 0:
-            count = 0
-            children = []
-            for child in T[each]:
-                if tag[child] == 1:
-                    count += 1
-                    children.append(child)
-            if count == 2:
-                return True, each, children
-    return False, None, [], []
-
-
-def hamming_distance(a, b):
-    n = len(a)
-    count = 0
-    for i in range(n):
-        if a[i] != b[i]:
-            count += 1
-    return count
-
-
-def not_equal(a, b):
-    if a == b:
-        return 0
-    return 1
-
-
-# T is undirected, rooted
-# T format: {a : [b, c], b: [a], ...}
 # character format: {a: 'A', b: 'C', 'd': 'C', ...} (for all leaf nodes)
 def small_parsimony_one_tree_unrooted(T, character):
     backtrack = {}
