@@ -279,16 +279,10 @@ def nearest_neighbor_interchage(T, character_list):
     new_score, output, new_tree = run_small_parsimony_one_tree_unrooted(
         T, character_list)
 
-    firstone = True
-    temp_output = output
+    output_list = []
     while new_score < score:
         score = new_score
         tree = new_tree
-        if not firstone:
-            total_output_map.setdefault(new_score, []).append(
-                "".join(temp_output) + "\n")
-        if firstone:
-            firstone = False
 
         Tree_edges = set()
         store = deque()
@@ -314,6 +308,12 @@ def nearest_neighbor_interchage(T, character_list):
                 if neighborScore < new_score:
                     new_score = neighborScore
                     new_tree = temp_tree
-                    temp_output = output
+                    output_list = [output]
+                elif neighborScore == new_score:
+                    output_list.append(output)
+
+    for temp_output in output_list:
+        total_output_map.setdefault(new_score, []).append(
+            "".join(temp_output) + "\n")
 
     return total_output_map
