@@ -280,37 +280,40 @@ def nearest_neighbor_interchage(T, character_list):
         T, character_list)
 
     output_list = []
+    new_tree_list = [new_tree]
     while new_score < score:
         score = new_score
-        tree = new_tree
+        tree_list = new_tree_list
 
-        Tree_edges = set()
-        store = deque()
-        store.append(0)
-        visited = set()
+        for tree in tree_list:
+            Tree_edges = set()
+            store = deque()
+            store.append(0)
+            visited = set()
 
-        while len(store) > 0:
-            cur = store.popleft()
-            for son in tree[cur]["children"]:
-                if son not in visited:
-                    if len(tree[cur]["children"]) > 1 and len(tree[son]["children"]) > 1:
-                        Tree_edges.add((cur, son))
-                    store.append(son)
-            visited.add(cur)
+            while len(store) > 0:
+                cur = store.popleft()
+                for son in tree[cur]["children"]:
+                    if son not in visited:
+                        if len(tree[cur]["children"]) > 1 and len(tree[son]["children"]) > 1:
+                            Tree_edges.add((cur, son))
+                        store.append(son)
+                visited.add(cur)
 
-        for e in Tree_edges:
-            neighbors = nearest_neighbors_combined(e[0], e[1], tree)
-            for NeighborTree in neighbors:
-                rooted_tree, character_list = decompose_combined_tree(
-                    NeighborTree)
-                neighborScore, output, temp_tree = run_small_parsimony_one_tree_unrooted(
-                    rooted_tree, character_list)
-                if neighborScore < new_score:
-                    new_score = neighborScore
-                    new_tree = temp_tree
-                    output_list = [output]
-                elif neighborScore == new_score:
-                    output_list.append(output)
+            for e in Tree_edges:
+                neighbors = nearest_neighbors_combined(e[0], e[1], tree)
+                for NeighborTree in neighbors:
+                    rooted_tree, character_list = decompose_combined_tree(
+                        NeighborTree)
+                    neighborScore, output, temp_tree = run_small_parsimony_one_tree_unrooted(
+                        rooted_tree, character_list)
+                    if neighborScore < new_score:
+                        new_score = neighborScore
+                        new_tree_list = [temp_tree]
+                        output_list = [output]
+                    elif neighborScore == new_score:
+                        new_tree_list.append(temp_tree)
+                        output_list.append(output)
 
     for temp_output in output_list:
         total_output_map.setdefault(new_score, []).append(
