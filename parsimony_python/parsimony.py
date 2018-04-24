@@ -295,4 +295,4 @@ def nearest_neighbor_interchage(T, character_list):
 
     output_str_set = {serialize_tree(score, tree) for tree in new_tree_list}
 
-    return "\n\n".join([i for i in output_str_set])
+    return "\n-----\n".join([i for i in output_str_set]) + "\n-----"

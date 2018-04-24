@@ -30,12 +30,41 @@ def run_python_baseline(file_name, outfile_name):
     write_result(outfile_name, result)
 
 
+def compare_two_files(file_1_name, file_2_name):
+    trees_1 = []
+    trees_2 = []
+
+    with open(file_1_name, 'r') as input_file:
+        tree = []
+        for line in input_file:
+            line = line.strip()
+            if line != "-----":
+                tree.append(line)
+            else:
+                trees_1.append(tree)
+                tree = []
+
+    with open(file_2_name, 'r') as input_file:
+        tree = []
+        for line in input_file:
+            line = line.strip()
+            if line != "-----":
+                tree.append(line)
+            else:
+                trees_2.append(tree)
+                tree = []
+
+    # TODO : add comparision logic
+
+
 def main():
     input_file = "../data/dataset_38507_8.txt"
     python_outfile = "../output/python_result.txt"
+    cpp_outfile = "../output/cpp_result.txt"
 
     run_python_baseline(input_file, python_outfile)
 
+    compare_two_files(python_outfile, cpp_outfile)
 
 if __name__ == '__main__':
     main()
