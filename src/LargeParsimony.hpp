@@ -247,15 +247,20 @@ class LargeParsimony {
           get_edges_from_unrooted_undirectional_tree();  // write to
                                                          // this->edges;
                                                          // this->visited
-    cout<<"*****************************************************************"<<this->min_large_parsimony_score<<endl;
-    cout<<"index array:"<<endl;
-      for(int i = 0;i<this->num_nodes;i++)
-              cout<<i<<":"<<this->unrooted_undirectional_idx_arr.get()[i]<<" ";
-    cout<<endl;
-    cout<<"neighbor array:"<<endl;
-      for(int i = 0;i<(this->num_nodes-1)*2;i++)
-          cout<<i<<":"<<this->unrooted_undirectional_tree.get()[i]<<" ";
-    cout<<"*****************************************************************"<<endl;
+      cout
+          << "*****************************************************************"
+          << this->min_large_parsimony_score << endl;
+      cout << "index array:" << endl;
+      for (int i = 0; i < this->num_nodes; i++)
+        cout << i << ":" << this->unrooted_undirectional_idx_arr.get()[i]
+             << " ";
+      cout << endl;
+      cout << "neighbor array:" << endl;
+      for (int i = 0; i < (this->num_nodes - 1) * 2; i++)
+        cout << i << ":" << this->unrooted_undirectional_tree.get()[i] << " ";
+      cout
+          << "*****************************************************************"
+          << endl;
       // For each edge, exchange the internal edges to get 2 new trees
       int length = this->num_edges * 2;
       for (int i = 0; i < length; i += 2) {
@@ -323,7 +328,7 @@ class LargeParsimony {
               this->cur_rooted_char_list, this->num_char_trees,
               this->num_nodes + 1);
           small_parsimony.get()->run_small_parsimony_string();
-          cout<<"*****"<<small_parsimony.get()->total_score<<endl;
+          cout << "*****" << small_parsimony.get()->total_score << endl;
           // cout<<"new_score is: "<<new_score<<" small_parsimony->total_score
           // is: "<<small_parsimony.get()->total_score<<endl;
           if (small_parsimony.get()->total_score < new_score) {  // compare

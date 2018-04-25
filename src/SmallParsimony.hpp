@@ -69,8 +69,8 @@ class SmallParsimony {
       }
     }
   }
-  ~SmallParsimony() { 
-    // cout << "Small Parsimony decostructed." << endl; 
+  ~SmallParsimony() {
+    // cout << "Small Parsimony decostructed." << endl;
   }
   void run_small_parsimony_string() {
     this->total_score = 0;

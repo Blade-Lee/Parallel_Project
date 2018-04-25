@@ -134,15 +134,12 @@ def serialize_tree(score, tree):
 
     q.append(0)
 
-    # print("\n\nserialization:\n")
     while len(q) > 0:
         top = q.popleft()
         top_new_id = node_id_map[top]
         top_str = tree[top]["str"]
         node_str_list.append("{}->{}".format(top_new_id, top_str))
         top_children = tree[top]["children"]
-        # print("top: [{}], str: [{}], children[{}]".format(
-        #     top, top_str, top_children))
         for child in top_children:
             if child not in node_id_map:
                 node_id_map[child] = next_id
