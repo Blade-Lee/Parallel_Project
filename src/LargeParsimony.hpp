@@ -39,10 +39,9 @@ class LargeParsimony {
                                    // need to initialize
 
   // for internal use
-  shared_ptr<int>
-      cur_unrooted_undirectional_tree;      // must have a copy of
-                                            // unrooted_undirectional_tree for
-                                            // internal exchange use
+  shared_ptr<int> cur_unrooted_undirectional_tree;  // must have a copy of
+  // unrooted_undirectional_tree for
+  // internal exchange use
   shared_ptr<int> rooted_directional_tree;  // (n+1) nodes, parent-children arr
   shared_ptr<int> rooted_directional_idx_arr;  // (n+1) nodes
   shared_ptr<char> cur_rooted_char_list;       // (n+1) * (str_len) nodes
@@ -309,9 +308,9 @@ class LargeParsimony {
           // cout<<"reach here before"<<endl;
 
           make_tree_rooted_directional();  // write to
-                                           // this->cur_unrooted_undirectional_tree;
-                                           // this->rooted_directional_idx_arr;
-                                           // this->rooted_directional_tree;
+          // this->cur_unrooted_undirectional_tree;
+          // this->rooted_directional_idx_arr;
+          // this->rooted_directional_tree;
 
           // cout<<"reach here after"<<endl;
 
