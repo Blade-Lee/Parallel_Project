@@ -242,21 +242,19 @@ class LargeParsimony {
     deep_copy_push_back<string>(this->tmp_string_list_queue, small_parsimony.get()->string_list, this->num_nodes);
     while(!this->tmp_unrooted_undirectional_tree_queue.empty()){
 
-      cout<<"size of tmp list is: "<< tmp_unrooted_undirectional_tree_queue.size()<<endl;
       // record tmp list to final list
       this->unrooted_undirectional_tree_queue = this->tmp_unrooted_undirectional_tree_queue;
       this->string_list_queue = this->tmp_string_list_queue;
       // clear up tmp list
       this->tmp_unrooted_undirectional_tree_queue = deque<shared_ptr<int>>();
       this->tmp_string_list_queue = deque<shared_ptr<string>>();
-      this->min_large_parsimony_score = new_score--; // new_score -1 is for comparation below
+      this->min_large_parsimony_score = new_score; // should use new_score -1 is for comparation (here compatible with weichen's code)
 
       auto tree_i_ptr = this->unrooted_undirectional_tree_queue.begin();
       auto tree_end = this->unrooted_undirectional_tree_queue.end();
       auto string_i_ptr = this->string_list_queue.begin();
-      int ii=0;
+
       for (; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr){
-        cout<<"iterate to: "<<ii++<<endl;
         this->unrooted_undirectional_tree = *tree_i_ptr;
         // get all edges for this->unrooted_undirectional_tree
         shared_ptr<int> edges = get_edges_from_unrooted_undirectional_tree();  // write to
@@ -314,6 +312,7 @@ class LargeParsimony {
                 this->cur_rooted_char_list, this->num_char_trees,
                 this->num_nodes + 1);
             small_parsimony.get()->run_small_parsimony_string();
+            
             // record the minmal one
             if (small_parsimony.get()->total_score <= new_score) {  // compare
               if(small_parsimony.get()->total_score < new_score){
@@ -321,9 +320,7 @@ class LargeParsimony {
                 this->tmp_unrooted_undirectional_tree_queue.clear();
                 this->tmp_string_list_queue.clear();
                 new_score = small_parsimony.get()->total_score;
-                cout<<"clear list"<<endl;
               }
-              cout<<new_score<<endl;
               // add to tmp list
               deep_copy_push_back<int>(this->tmp_unrooted_undirectional_tree_queue, cur_unrooted_undirectional_tree, this->unrooted_undirectional_tree_len);
               deep_copy_push_back<string>(this->tmp_string_list_queue, small_parsimony.get()->string_list, this->num_nodes);
