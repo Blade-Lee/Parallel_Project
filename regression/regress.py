@@ -103,7 +103,7 @@ def run_python_baseline(file_name, outfile_name):
     result = nearest_neighbor_interchage(
         T, character_list)
 
-    write_result(outfile_name, result)
+    # write_result(outfile_name, result)
 
 
 def get_tree_char(trees_list):
@@ -220,8 +220,8 @@ def main():
 
     run_python_baseline(new_input_file, python_outfile)
 
-    result = compare_two_files(python_outfile, cpp_outfile)
-    print(result)
+    # result = compare_two_files(python_outfile, cpp_outfile)
+    # print(result)
    
 
 if __name__ == '__main__':

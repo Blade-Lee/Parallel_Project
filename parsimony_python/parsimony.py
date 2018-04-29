@@ -232,7 +232,7 @@ def nearest_neighbor_interchage(T, character_list):
     while new_score < score:
         score = new_score
         tree_list = new_tree_list
-
+        print("size of tmp list is: ", len(tree_list))
         for tree in tree_list:
             Tree_edges = set()
             store = deque()
@@ -258,7 +258,10 @@ def nearest_neighbor_interchage(T, character_list):
                     if neighborScore < new_score:
                         new_score = neighborScore
                         new_tree_list = [temp_tree]
+                        print('clear')
+                        print(neighborScore)
                     elif neighborScore == new_score:
+                        print(neighborScore)
                         new_tree_list.append(temp_tree)
 
     output_str_set = {serialize_tree(score, tree) for tree in new_tree_list}
