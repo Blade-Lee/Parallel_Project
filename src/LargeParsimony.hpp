@@ -42,9 +42,10 @@ class LargeParsimony {
   deque<shared_ptr<string>> string_list_queue;
 
   // for internal use
-  shared_ptr<int> cur_unrooted_undirectional_tree;  // must have a copy of
-  // unrooted_undirectional_tree for
-  // internal exchange use
+  shared_ptr<int>
+      cur_unrooted_undirectional_tree;      // must have a copy of
+                                            // unrooted_undirectional_tree for
+                                            // internal exchange use
   shared_ptr<int> rooted_directional_tree;  // (n+1) nodes, parent-children arr
   shared_ptr<int> rooted_directional_idx_arr;  // (n+1) nodes
   shared_ptr<char> cur_rooted_char_list;       // (n+1) * (str_len) nodes
@@ -240,6 +241,7 @@ class LargeParsimony {
     deep_copy_push_back<int>(this->tmp_unrooted_undirectional_tree_queue, this->unrooted_undirectional_tree, this->unrooted_undirectional_tree_len);
     deep_copy_push_back<string>(this->tmp_string_list_queue, small_parsimony.get()->string_list, this->num_nodes);
     while(!this->tmp_unrooted_undirectional_tree_queue.empty()){
+
       cout<<"size of tmp list is: "<< tmp_unrooted_undirectional_tree_queue.size()<<endl;
       // record tmp list to final list
       this->unrooted_undirectional_tree_queue = this->tmp_unrooted_undirectional_tree_queue;
