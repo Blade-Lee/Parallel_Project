@@ -29,9 +29,8 @@ queue<string> readLines(string file_name) {
 }
 
 bool isNumber(const string& s) {
-  return !s.empty() &&
-         find_if(s.begin(), s.end(), [](char c) { return !isdigit(c); }) ==
-             s.end();
+  return !s.empty() && find_if(s.begin(), s.end(),
+                               [](char c) { return !isdigit(c); }) == s.end();
 }
 
 void assign_number(unordered_map<string, int>& assign, int& cur_leave,
