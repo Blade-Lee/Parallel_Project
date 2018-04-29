@@ -144,9 +144,9 @@ void runBaseline(string file_name, string outfile_name) {
   large_parsimony.get()->run_large_parsimony();
   cout<<"========================================================================="<<endl;
   cout << "the minimum large parsimony score is: "<< large_parsimony.get()->min_large_parsimony_score << endl;
-  // for(int i = 0; i < num_undirected_nodes; i++){
-  //   cout<<"node: "<<i<<" ---> "<<large_parsimony.get()->string_list.get()[i]<<endl;
-  // }
+  for(int i = 0; i < num_undirected_nodes; i++){
+    cout<<"node: "<<i<<" ---> "<<large_parsimony.get()->string_list.get()[i]<<endl;
+  }
 }
 
 int main(int argc, const char* argv[]) {
