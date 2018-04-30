@@ -232,6 +232,7 @@ def nearest_neighbor_interchage(T, character_list):
     while new_score < score:
         score = new_score
         tree_list = new_tree_list
+        new_tree_list = []
 
         for tree in tree_list:
             Tree_edges = set()

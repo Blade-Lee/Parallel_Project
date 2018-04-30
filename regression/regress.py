@@ -218,10 +218,10 @@ def main():
     assigment = assign_strings(tree, str_len)
     generate_input_file(tree, assigment, new_input_file)
 
-    run_python_baseline(new_input_file, python_outfile)
+    run_python_baseline(input_file, python_outfile)
 
-    result = compare_two_files(python_outfile, cpp_outfile)
-    print(result)
+    # result = compare_two_files(python_outfile, cpp_outfile)
+    # print(result)
    
 
 if __name__ == '__main__':
