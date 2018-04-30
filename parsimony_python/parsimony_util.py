@@ -1,3 +1,38 @@
+from collections import deque
+
+
+def hamming_distance(a, b):
+    n = len(a)
+    count = 0
+    for i in range(n):
+        if a[i] != b[i]:
+            count += 1
+    return count
+
+
+def not_equal(a, b):
+    if a == b:
+        return 0
+    return 1
+
+
+# T is undirected, rooted
+# T format: {a : [b, c], b: [a], ...}
+# tag format: {a : 0, b : 1, c : 0}
+def find_ripe_node_one_tree_unrooted(T, tag):
+    for each in T:
+        if tag[each] == 0:
+            count = 0
+            children = []
+            for child in T[each]:
+                if tag[child] == 1:
+                    count += 1
+                    children.append(child)
+            if count == 2:
+                return True, each, children
+    return False, None, []
+
+
 def get_neighbor_pair(line, assign, counter):
     division = line.strip().split("->")
 
@@ -84,8 +119,36 @@ def read_lines(file_name):
     return result
 
 
-def write_result_map(file_name, result_map):
+def write_result(file_name, result):
     with open(file_name, "w") as output:
-        min_score = min([i for i in result_map])
-        for k in result_map[min_score]:
-            output.write(k)
+        output.write(result)
+
+
+def serialize_tree(score, tree):
+    edge_list = []
+    node_str_list = []
+    node_id_map = {0: 0}
+
+    q = deque()
+    next_id = 1
+
+    q.append(0)
+
+    while len(q) > 0:
+        top = q.popleft()
+        top_new_id = node_id_map[top]
+        top_str = tree[top]["str"]
+        node_str_list.append("{}->{}".format(top_new_id, top_str))
+        top_children = tree[top]["children"]
+        for child in top_children:
+            if child not in node_id_map:
+                node_id_map[child] = next_id
+                next_id += 1
+                q.append(child)
+
+            child_new_id = node_id_map[child]
+            edge_list.append("{}->{}".format(top_new_id, child_new_id))
+
+    edge_list = sorted(edge_list, key=lambda x: int(x.split("->")[0]))
+
+    return "{}\n{}\n{}".format(score, "\n".join(edge_list), "\n".join(node_str_list))

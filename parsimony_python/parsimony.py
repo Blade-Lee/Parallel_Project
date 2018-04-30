@@ -5,38 +5,6 @@ from parsimony_util import *
 
 # T is undirected, rooted
 # T format: {a : [b, c], b: [a], ...}
-# tag format: {a : 0, b : 1, c : 0}
-def find_ripe_node_one_tree_unrooted(T, tag):
-    for each in T:
-        if tag[each] == 0:
-            count = 0
-            children = []
-            for child in T[each]:
-                if tag[child] == 1:
-                    count += 1
-                    children.append(child)
-            if count == 2:
-                return True, each, children
-    return False, None, [], []
-
-
-def hamming_distance(a, b):
-    n = len(a)
-    count = 0
-    for i in range(n):
-        if a[i] != b[i]:
-            count += 1
-    return count
-
-
-def not_equal(a, b):
-    if a == b:
-        return 0
-    return 1
-
-
-# T is undirected, rooted
-# T format: {a : [b, c], b: [a], ...}
 # character format: {a: 'A', b: 'C', 'd': 'C', ...} (for all leaf nodes)
 def small_parsimony_one_tree_unrooted(T, character):
     backtrack = {}
@@ -186,24 +154,7 @@ def run_small_parsimony_one_tree_unrooted(T, character_list):
                 store.append(son)
         visited.add(cur)
 
-    output = ["{}\n".format(total)]
-
-    store = deque()
-    store.append(root)
-    visited = set()
-
-    while len(store) > 0:
-        cur = store.popleft()
-        cur_str = combined_tree[cur]["str"]
-        for son in combined_tree[cur]["children"]:
-            son_str = combined_tree[son]["str"]
-            output.append("{}->{}:{}\n".format(cur_str, son_str,
-                                               hamming_distance(cur_str, son_str)))
-            if son not in visited:
-                store.append(son)
-        visited.add(cur)
-
-    return total, output, combined_tree
+    return total, combined_tree
 
 
 def switch_subtree_combined(a, x, b, y, T):
@@ -269,51 +220,47 @@ def nearest_neighbor_interchage(T, character_list):
     # Combined Tree format, undirected, unrooted
     # combined_tree = {node: {"str": xxx, "children": [...]}, ...}
 
-    total_output_map = {}
-
     score = 1000000000
 
     # we need this step to transform T to new_tree
     # T is undirected, rooted
     # new_tree is undirected, unrooted
-    new_score, output, new_tree = run_small_parsimony_one_tree_unrooted(
+    new_score, new_tree = run_small_parsimony_one_tree_unrooted(
         T, character_list)
 
-    firstone = True
-    temp_output = output
+    new_tree_list = [new_tree]
     while new_score < score:
         score = new_score
-        tree = new_tree
-        if not firstone:
-            total_output_map.setdefault(new_score, []).append(
-                "".join(temp_output) + "\n")
-        if firstone:
-            firstone = False
+        tree_list = new_tree_list
 
-        Tree_edges = set()
-        store = deque()
-        store.append(0)
-        visited = set()
+        for tree in tree_list:
+            Tree_edges = set()
+            store = deque()
+            store.append(0)
+            visited = set()
 
-        while len(store) > 0:
-            cur = store.popleft()
-            for son in tree[cur]["children"]:
-                if son not in visited:
-                    if len(tree[cur]["children"]) > 1 and len(tree[son]["children"]) > 1:
-                        Tree_edges.add((cur, son))
-                    store.append(son)
-            visited.add(cur)
+            while len(store) > 0:
+                cur = store.popleft()
+                for son in tree[cur]["children"]:
+                    if son not in visited:
+                        if len(tree[cur]["children"]) > 1 and len(tree[son]["children"]) > 1:
+                            Tree_edges.add((cur, son))
+                        store.append(son)
+                visited.add(cur)
 
-        for e in Tree_edges:
-            neighbors = nearest_neighbors_combined(e[0], e[1], tree)
-            for NeighborTree in neighbors:
-                rooted_tree, character_list = decompose_combined_tree(
-                    NeighborTree)
-                neighborScore, output, temp_tree = run_small_parsimony_one_tree_unrooted(
-                    rooted_tree, character_list)
-                if neighborScore < new_score:
-                    new_score = neighborScore
-                    new_tree = temp_tree
-                    temp_output = output
+            for e in Tree_edges:
+                neighbors = nearest_neighbors_combined(e[0], e[1], tree)
+                for NeighborTree in neighbors:
+                    rooted_tree, character_list = decompose_combined_tree(
+                        NeighborTree)
+                    neighborScore, temp_tree = run_small_parsimony_one_tree_unrooted(
+                        rooted_tree, character_list)
+                    if neighborScore < new_score:
+                        new_score = neighborScore
+                        new_tree_list = [temp_tree]
+                    elif neighborScore == new_score:
+                        new_tree_list.append(temp_tree)
 
-    return total_output_map
+    output_str_set = {serialize_tree(score, tree) for tree in new_tree_list}
+
+    return "\n-----\n".join([i for i in output_str_set]) + "\n-----"
