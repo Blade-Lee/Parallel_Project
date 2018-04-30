@@ -28,13 +28,14 @@ queue<string> readLines(string file_name) {
   return lines;
 }
 
-bool isNumber(const string& s) {
-  return !s.empty() && find_if(s.begin(), s.end(),
-                               [](char c) { return !isdigit(c); }) == s.end();
+bool isNumber(const string &s) {
+  return !s.empty() &&
+         find_if(s.begin(), s.end(), [](char c) { return !isdigit(c); }) ==
+             s.end();
 }
 
-void assign_number(unordered_map<string, int>& assign, int& cur_leave,
-                   const string& input_str, int& output_num) {
+void assign_number(unordered_map<string, int> &assign, int &cur_leave,
+                   const string &input_str, int &output_num) {
   if (isNumber(input_str)) {
     output_num = stoi(input_str);
   } else {
@@ -47,8 +48,8 @@ void assign_number(unordered_map<string, int>& assign, int& cur_leave,
   }
 }
 
-tuple<int, int> getNeighborPair(string line, unordered_map<string, int>& assign,
-                                int& cur_leave) {
+tuple<int, int> getNeighborPair(string line, unordered_map<string, int> &assign,
+                                int &cur_leave) {
   string delimiter = "->";
   auto del_idx = line.find(delimiter);
   string first = line.substr(0, del_idx);
@@ -61,7 +62,7 @@ tuple<int, int> getNeighborPair(string line, unordered_map<string, int>& assign,
   return tuple<int, int>(first_number, second_number);
 }
 
-void connectNeighborPair(unordered_map<int, unordered_set<int>>& neighbors,
+void connectNeighborPair(unordered_map<int, unordered_set<int>> &neighbors,
                          int first, int second) {
   if (neighbors.find(first) != neighbors.end()) {
     neighbors[first].insert(second);
@@ -77,8 +78,8 @@ void connectNeighborPair(unordered_map<int, unordered_set<int>>& neighbors,
 }
 
 void convertNeighborsToUndirectedArr(
-    const unordered_map<int, unordered_set<int>>& neighbors,
-    shared_ptr<int>& undirected_idx, shared_ptr<int>& neighbor_arr) {
+    const unordered_map<int, unordered_set<int>> &neighbors,
+    shared_ptr<int> &undirected_idx, shared_ptr<int> &neighbor_arr) {
   int next_neighbor = 0;
   auto temp_idx = undirected_idx.get();
   auto temp_arr = neighbor_arr.get();
@@ -96,10 +97,10 @@ void convertNeighborsToUndirectedArr(
 
 void covertUndirectedToDirected(const int num_undirected_nodes,
                                 const int num_leaves,
-                                shared_ptr<int>& undirected_idx,
-                                shared_ptr<int>& neighbor_arr,
-                                shared_ptr<int>& directed_idx,
-                                shared_ptr<int>& children_arr) {
+                                shared_ptr<int> &undirected_idx,
+                                shared_ptr<int> &neighbor_arr,
+                                shared_ptr<int> &directed_idx,
+                                shared_ptr<int> &children_arr) {
   auto tmp_undirected_idx = undirected_idx.get();
   auto tmp_neighbor_arr = neighbor_arr.get();
   auto tmp_directed_idx = directed_idx.get();
@@ -151,12 +152,12 @@ void covertUndirectedToDirected(const int num_undirected_nodes,
   }
 }
 
-void initializeCharList(shared_ptr<char>& char_list,
-                        unordered_map<string, int>& assign, int num_char_trees,
+void initializeCharList(shared_ptr<char> &char_list,
+                        unordered_map<string, int> &assign, int num_char_trees,
                         int num_directed_nodes) {
   auto tmp_char_list = char_list.get();
   for (auto it = assign.begin(); it != assign.end(); ++it) {
-    const char* chars = (it->first).c_str();
+    const char *chars = (it->first).c_str();
     int node = it->second;
     for (int tree = 0; tree < num_char_trees; ++tree) {
       auto char_pos = tree * num_directed_nodes + node;

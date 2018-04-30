@@ -42,9 +42,9 @@ void runBaseline(string file_name, string outfile_name) {
   int num_undirected_edges = num_undirected_nodes - 1;
 
   auto undirected_idx = shared_ptr<int>(new int[num_undirected_nodes],
-                                        [](int* p) { delete[] p; });
+                                        [](int *p) { delete[] p; });
   auto neighbor_arr = shared_ptr<int>(new int[num_undirected_edges * 2],
-                                      [](int* p) { delete[] p; });
+                                      [](int *p) { delete[] p; });
 
   convertNeighborsToUndirectedArr(neighbors, undirected_idx, neighbor_arr);
 
@@ -72,14 +72,14 @@ void runBaseline(string file_name, string outfile_name) {
   int num_directed_internal_nodes = num_directed_nodes - num_leaves;
 
   auto directed_idx =
-      shared_ptr<int>(new int[num_directed_nodes], [](int* p) { delete[] p; });
+      shared_ptr<int>(new int[num_directed_nodes], [](int *p) { delete[] p; });
 
   auto children_arr = shared_ptr<int>(new int[num_directed_internal_nodes * 2],
-                                      [](int* p) { delete[] p; });
+                                      [](int *p) { delete[] p; });
 
   auto char_list =
       shared_ptr<char>(new char[num_directed_nodes * num_char_trees],
-                       [](char* p) { delete[] p; });
+                       [](char *p) { delete[] p; });
 
   covertUndirectedToDirected(num_undirected_nodes, num_leaves, undirected_idx,
                              neighbor_arr, directed_idx, children_arr);
@@ -143,42 +143,50 @@ void runBaseline(string file_name, string outfile_name) {
       neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves,
       num_char_trees);
   large_parsimony.get()->run_large_parsimony();
-  int min_large_parsimony_score = large_parsimony.get()->min_large_parsimony_score;
-  int* unrooted_undirectional_idx_arr = large_parsimony.get()->unrooted_undirectional_idx_arr.get();
-  deque<shared_ptr<int>> unrooted_undirectional_tree_queue = large_parsimony.get()->unrooted_undirectional_tree_queue;
-  deque<shared_ptr<string>> string_list_queue = large_parsimony.get()->string_list_queue;
 
-  cout<<"Writing result to file..."<<endl;
+  int min_large_parsimony_score =
+      large_parsimony.get()->min_large_parsimony_score;
+  int *unrooted_undirectional_idx_arr =
+      large_parsimony.get()->unrooted_undirectional_idx_arr.get();
+  deque<shared_ptr<int>> unrooted_undirectional_tree_queue =
+      large_parsimony.get()->unrooted_undirectional_tree_queue;
+  deque<shared_ptr<string>> string_list_queue =
+      large_parsimony.get()->string_list_queue;
+
+  cout << "Writing result to file..." << endl;
   ofstream myfile;
-  myfile.open (outfile_name);
+  myfile.open(outfile_name);
   auto tree_i_ptr = unrooted_undirectional_tree_queue.begin();
   auto tree_end = unrooted_undirectional_tree_queue.end();
   auto string_i_ptr = string_list_queue.begin();
 
-  for (; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr){
+  for (; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr) {
     shared_ptr<int> cur_tree = *tree_i_ptr;
     shared_ptr<string> cur_string_list = *string_i_ptr;
     // begin writing to file
     myfile << min_large_parsimony_score << "\n";
-    for(int i = 0; i < num_undirected_nodes; i++){
-      if(i < num_leaves){
-        myfile << i << "->" << cur_tree.get()[unrooted_undirectional_idx_arr[i]] << "\n";
-      }else{
-        for(int j = 0; j < 3; j++){
-          myfile << i << "->" << cur_tree.get()[unrooted_undirectional_idx_arr[i] + j] << "\n";
+    for (int i = 0; i < num_undirected_nodes; i++) {
+      if (i < num_leaves) {
+        myfile << i << "->" << cur_tree.get()[unrooted_undirectional_idx_arr[i]]
+               << "\n";
+      } else {
+        for (int j = 0; j < 3; j++) {
+          myfile << i << "->"
+                 << cur_tree.get()[unrooted_undirectional_idx_arr[i] + j]
+                 << "\n";
         }
       }
     }
-    for(int i = 0; i < num_undirected_nodes; i++){
+    for (int i = 0; i < num_undirected_nodes; i++) {
       myfile << i << "->" << cur_string_list.get()[i] << "\n";
     }
     // end of write
     myfile << "----\n";
   }
   myfile.close();
-  cout<<"Finished."<<endl;
+  cout << "Finished." << endl;
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char *argv[]) {
   runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
 }
