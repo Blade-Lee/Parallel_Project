@@ -241,7 +241,7 @@ class LargeParsimony {
     deep_copy_push_back<int>(this->tmp_unrooted_undirectional_tree_queue, this->unrooted_undirectional_tree, this->unrooted_undirectional_tree_len);
     deep_copy_push_back<string>(this->tmp_string_list_queue, small_parsimony.get()->string_list, this->num_nodes);
     while(!this->tmp_unrooted_undirectional_tree_queue.empty()){
-
+      // cout<<"----------------size of tmp list--------"<< tmp_unrooted_undirectional_tree_queue.size()<<endl;
       // record tmp list to final list
       this->unrooted_undirectional_tree_queue = this->tmp_unrooted_undirectional_tree_queue;
       this->string_list_queue = this->tmp_string_list_queue;
@@ -312,7 +312,7 @@ class LargeParsimony {
                 this->cur_rooted_char_list, this->num_char_trees,
                 this->num_nodes + 1);
             small_parsimony.get()->run_small_parsimony_string();
-            
+            // cout<< small_parsimony.get()->total_score<<endl;
             // record the minmal one
             if (small_parsimony.get()->total_score <= new_score) {  // compare
               if(small_parsimony.get()->total_score < new_score){
@@ -321,6 +321,7 @@ class LargeParsimony {
                 this->tmp_string_list_queue.clear();
                 new_score = small_parsimony.get()->total_score;
               }
+              // cout << "^^^^^^^in^^^^^^"<<endl;
               // add to tmp list
               deep_copy_push_back<int>(this->tmp_unrooted_undirectional_tree_queue, cur_unrooted_undirectional_tree, this->unrooted_undirectional_tree_len);
               deep_copy_push_back<string>(this->tmp_string_list_queue, small_parsimony.get()->string_list, this->num_nodes);
