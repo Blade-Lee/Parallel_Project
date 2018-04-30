@@ -6,8 +6,8 @@
 //  Copyright © 2018 WhistleStop. All rights reserved.
 //
 //
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include "LargeParsimony.hpp"
 #include "util.h"
 
@@ -181,7 +181,7 @@ void runBaseline(string file_name, string outfile_name) {
       myfile << i << "->" << cur_string_list.get()[i] << "\n";
     }
     // end of write
-    myfile << "----\n";
+    myfile << "-----\n";
   }
   myfile.close();
   cout << "Finished." << endl;
