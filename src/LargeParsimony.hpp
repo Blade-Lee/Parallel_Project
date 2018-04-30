@@ -10,11 +10,11 @@
 #define LargeParsimony_hpp
 
 #include <stdio.h>
+#include <deque>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <deque>
 #include "SmallParsimony.hpp"
 #endif /* LargeParsimony_hpp */
 using namespace std;
@@ -263,8 +263,8 @@ class LargeParsimony {
       this->tmp_string_list_queue = deque<shared_ptr<string>>();
 
       this->min_large_parsimony_score =
-          new_score;  // should use new_score -1 is for comparation (here
-                      // compatible with weichen's code)
+          new_score--;  // should use new_score -1 is for comparation (here
+                        // compatible with weichen's code)
 
       auto tree_i_ptr = this->unrooted_undirectional_tree_queue.begin();
       auto tree_end = this->unrooted_undirectional_tree_queue.end();
