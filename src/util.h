@@ -59,7 +59,7 @@ tuple<int, int> getNeighborPair(string line, unordered_map<string, int> &assign,
   assign_number(assign, cur_leave, first, first_number);
   assign_number(assign, cur_leave, second, second_number);
 
-  return {first_number, second_number};
+  return tuple<int, int>(first_number, second_number);
 }
 
 void connectNeighborPair(unordered_map<int, unordered_set<int>> &neighbors,
