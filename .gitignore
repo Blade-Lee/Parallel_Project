@@ -6,3 +6,6 @@ cpp_result.txt
 
 output
 .DS_Store
+.idea
+CMakeLists.txt
+cmake-build-debug/

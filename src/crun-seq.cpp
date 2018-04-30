@@ -42,9 +42,9 @@ void runBaseline(string file_name, string outfile_name) {
   int num_undirected_edges = num_undirected_nodes - 1;
 
   auto undirected_idx = shared_ptr<int>(new int[num_undirected_nodes],
-                                        [](int* p) { delete[] p; });
+                                        [](int *p) { delete[] p; });
   auto neighbor_arr = shared_ptr<int>(new int[num_undirected_edges * 2],
-                                      [](int* p) { delete[] p; });
+                                      [](int *p) { delete[] p; });
 
   convertNeighborsToUndirectedArr(neighbors, undirected_idx, neighbor_arr);
 
@@ -72,14 +72,14 @@ void runBaseline(string file_name, string outfile_name) {
   int num_directed_internal_nodes = num_directed_nodes - num_leaves;
 
   auto directed_idx =
-      shared_ptr<int>(new int[num_directed_nodes], [](int* p) { delete[] p; });
+      shared_ptr<int>(new int[num_directed_nodes], [](int *p) { delete[] p; });
 
   auto children_arr = shared_ptr<int>(new int[num_directed_internal_nodes * 2],
-                                      [](int* p) { delete[] p; });
+                                      [](int *p) { delete[] p; });
 
   auto char_list =
       shared_ptr<char>(new char[num_directed_nodes * num_char_trees],
-                       [](char* p) { delete[] p; });
+                       [](char *p) { delete[] p; });
 
   covertUndirectedToDirected(num_undirected_nodes, num_leaves, undirected_idx,
                              neighbor_arr, directed_idx, children_arr);
@@ -146,7 +146,7 @@ void runBaseline(string file_name, string outfile_name) {
 
   int min_large_parsimony_score =
       large_parsimony.get()->min_large_parsimony_score;
-  int* unrooted_undirectional_idx_arr =
+  int *unrooted_undirectional_idx_arr =
       large_parsimony.get()->unrooted_undirectional_idx_arr.get();
   deque<shared_ptr<int>> unrooted_undirectional_tree_queue =
       large_parsimony.get()->unrooted_undirectional_tree_queue;
@@ -187,6 +187,6 @@ void runBaseline(string file_name, string outfile_name) {
   cout << "Finished." << endl;
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char *argv[]) {
   runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
 }
