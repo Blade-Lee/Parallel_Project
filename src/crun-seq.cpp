@@ -8,20 +8,19 @@
 //
 #include <fstream>
 #include <iostream>
-#include "LargeParsimony.hpp"
+// #include "LargeParsimony.hpp"
+#include "LargeParsimony-mpi.hpp"
 #include "util.h"
 
 void runBaseline(string file_name, string outfile_name) {
   auto lines = readLines(file_name);
-
   int num_leaves = stoi(lines.front());
-  int cur_leave = num_leaves - 1;
-  lines.pop();
+  int cur_leave = num_leaves - 1;  
 
+  lines.pop();
   unordered_map<string, int> assign;
   unordered_map<int, unordered_set<int>> neighbors;
   int max_node_idx = -1;
-
   while (!lines.empty()) {
     auto line = lines.front();
     lines.pop();
@@ -34,7 +33,6 @@ void runBaseline(string file_name, string outfile_name) {
 
     connectNeighborPair(neighbors, first, second);
   }
-
   int num_char_trees = (assign.begin()->first).length();
 
   // Convert from Neighbor Map to Undirected Tree
@@ -45,7 +43,6 @@ void runBaseline(string file_name, string outfile_name) {
                                         [](int *p) { delete[] p; });
   auto neighbor_arr = shared_ptr<int>(new int[num_undirected_edges * 2],
                                       [](int *p) { delete[] p; });
-
   convertNeighborsToUndirectedArr(neighbors, undirected_idx, neighbor_arr);
 
   // for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
@@ -76,7 +73,6 @@ void runBaseline(string file_name, string outfile_name) {
 
   auto children_arr = shared_ptr<int>(new int[num_directed_internal_nodes * 2],
                                       [](int *p) { delete[] p; });
-
   auto char_list =
       shared_ptr<char>(new char[num_directed_nodes * num_char_trees],
                        [](char *p) { delete[] p; });
@@ -187,4 +183,4 @@ void runBaseline(string file_name, string outfile_name) {
   // cout << "Finished." << endl;
 }
 
-int main(int argc, const char *argv[]) { runBaseline(argv[1], argv[2]); }
+int main(int argc, const char *argv[]) {  runBaseline(argv[1], argv[2]); }
