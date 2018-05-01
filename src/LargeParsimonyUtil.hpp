@@ -1,3 +1,6 @@
+#include <string>
+#include <memory>
+
 // Define Small Parsimony Logics
   int run_small_parsimony_string(int num_char_trees, char* rooted_char_list,
                                   int* rooted_directional_tree, int* rooted_directional_idx_arr,
