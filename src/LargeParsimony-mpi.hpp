@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include "LargeParsimonyUtil.hpp"
 #endif /* LargeParsimony_hpp */
 using namespace std;
 
@@ -101,294 +102,9 @@ class LargeParsimony {
     this->map_char_idx.get()['G' - 'A'] = 2;
     this->map_char_idx.get()['T' - 'A'] = 3;
   }
+  
   ~LargeParsimony() { cout << "Large Parsimony deconstructed." << endl; }
 
-  // Define Small Parsimony Logics
-  int run_small_parsimony_string(int num_char_trees, char* rooted_char_list,
-                                  int* rooted_directional_tree, int* rooted_directional_idx_arr,
-                                  string* string_list, int num_nodes) {
-    // preprocess rooted_char_list, converti it from char to char(int)
-    int rooted_char_list_len = num_char_trees * num_nodes;
-    for (int i = 0; i < rooted_char_list_len; i++) {
-      char cur_c = rooted_char_list[i];
-      if (cur_c == 'A' || cur_c == 'C' || cur_c == 'G' || cur_c == 'T') {
-        rooted_char_list[i] = this->map_char_idx.get()[cur_c - 'A'];
-      }
-    }
-    // Main logic
-    int total_score = 0;
-    char ACGT_arr[4] = {'A', 'C', 'G', 'T'};
-    for (int i = 0; i < num_char_trees; i++) {
-      char* cur_rooted_char_list_idx = rooted_char_list + i * num_nodes;
-      int cur_score = run_small_parsimony_char(cur_rooted_char_list_idx, rooted_directional_tree, rooted_directional_idx_arr, num_nodes);
-      // add to final total score
-      total_score += cur_score;
-      // append char list to current string list
-      for (int i = 0; i < num_nodes - 1; i++) {
-        string_list[i] += ACGT_arr[int(cur_rooted_char_list_idx[i])];
-      }
-    }
-    return total_score;
-  }
-  // minimal granularity cell
-  int run_small_parsimony_char(char* rooted_char_list, int* rooted_directional_tree, int* rooted_directional_idx_arr,
-                               int num_nodes) {  // use current char list and
-                                                 // global tree structure to
-                                                 // calculate
-    // input: char list; directional & rooted tree given as rooted_directional_tree
-    // return: the small parsimony score of the char tree and also write the
-    // assigned chars to the global rooted_char_list
-
-    // local allocation
-    // using unique_ptr inside here, cause unique_ptr has partial definition for
-    // unique_ptr
-    unique_ptr<int[]> s_v_k(new int[num_nodes * 4]);  // indicate the
-                                                            // score of node v
-                                                            // choosing k char
-    unique_ptr<unsigned char[]> tag(
-        new unsigned char[num_nodes]);  // indicate if the noed i is ripe
-    unique_ptr<unsigned char[]> back_track_arr(
-        new unsigned char[num_nodes * 8]);  // indicate for each node,
-                                                  // chosen a char of 4, what is
-                                                  // the best char for its left
-                                                  // & right children.
-
-    // initialization (no need to initialize back_track_arr)
-    int infinity = int(1e8);
-
-    for (int i = 0; i < num_nodes; i++) {
-      int bias = 4 * i;
-      char leaf_char = rooted_char_list[i];
-      int node_idx = rooted_directional_idx_arr[i];  // if -1, then it is a leaf
-      for (int j = 0; j < 4; j++) {
-        s_v_k.get()[bias + j] =
-            infinity *
-            int(node_idx == -1 && j != leaf_char);  // if it is a leaves && it
-                                                    // is not the leave char,
-                                                    // assign it to infinity
-      }
-      tag.get()[i] = int(node_idx == -1);  // all leaves are ripe already
-    }
-
-    int root = -1;  // cur node
-    int min_parsimony_score = infinity;
-    int root_char_idx = '#';
-
-    // main logic
-    while (true) {
-      // find a ripe node in the tree
-      int ripe_node = -1;
-      int daughter = -1;
-      int son = -1;
-      for (int i = 0; i < num_nodes; i++) {
-        if (!tag.get()[i]) {  // if tag(i) is 0
-          int bias = rooted_directional_idx_arr[i];
-          daughter = rooted_directional_tree[bias];
-          son = rooted_directional_tree[bias + 1];
-          if (tag.get()[daughter] && tag.get()[son]) {
-            ripe_node = i;
-            break;
-          }
-        }
-      }
-
-      // if no ripe, root has been found and dealed with
-      if (ripe_node == -1) {
-        break;
-      }
-      // find one ripe node
-      root = ripe_node;
-      min_parsimony_score = infinity;
-      root_char_idx = '#';
-      tag.get()[root] = 1;
-      for (int i = 0; i < 4; i++) {
-        char min_left_char_idx = '#';
-        char min_right_char_idx = '#';
-
-        int left_min_score = infinity;
-        int right_min_score = infinity;
-
-        int offset_left = 4 * daughter;
-        int offset_right = 4 * son;
-
-        for (int left_i = 0; left_i < 4; left_i++) {
-          int tmp_score = s_v_k.get()[offset_left + left_i] + int(i != left_i);
-          if (tmp_score < left_min_score) {
-            left_min_score = tmp_score;
-            min_left_char_idx = left_i;
-          }
-        }
-        for (int right_i = 0; right_i < 4; right_i++) {
-          int tmp_score =
-              s_v_k.get()[offset_right + right_i] + int(i != right_i);
-          if (tmp_score < right_min_score) {
-            right_min_score = tmp_score;
-            min_right_char_idx = right_i;
-          }
-        }
-        int cur_total_score = left_min_score + right_min_score;
-        s_v_k.get()[root * 4 + i] = cur_total_score;
-        if (cur_total_score < min_parsimony_score) {
-          min_parsimony_score = cur_total_score;
-          root_char_idx = i;
-        }
-        int back_track_arr_offset = root * 8 + i * 2;
-        back_track_arr.get()[back_track_arr_offset] = min_left_char_idx;
-        back_track_arr.get()[back_track_arr_offset + 1] = min_right_char_idx;
-      }
-    }
-    // No ripe node any more, root is the fianl root now, calcuate the final
-    // score and fill up the char array (tree)
-    queue<int> q;
-    q.push(root);
-    rooted_char_list[root] = root_char_idx;
-    while (!q.empty()) {
-      int parent = q.front();
-      q.pop();
-      char min_char_idx = rooted_char_list[parent];
-      int child_idx = rooted_directional_idx_arr[parent];
-      if (child_idx != -1) {  // if it is not a leaf
-        int left_child_id = rooted_directional_tree[child_idx];
-        int right_child_id = rooted_directional_tree[child_idx + 1];
-
-        int tmp_idx = parent * 8 + 2 * min_char_idx;
-        char left_min_char_idx = back_track_arr.get()[tmp_idx];
-        char right_min_char_idx = back_track_arr.get()[tmp_idx + 1];
-
-        rooted_char_list[left_child_id] = left_min_char_idx;
-        rooted_char_list[right_child_id] = right_min_char_idx;
-
-        if (rooted_directional_idx_arr[left_child_id] != -1) q.push(left_child_id);
-        if (rooted_directional_idx_arr[right_child_id] != -1) q.push(right_child_id);
-      }
-    }
-    return min_parsimony_score;
-  }
-
-  /*
-      get a new (unrooted_undirectional_tree,) from old
-     (unrootedundirectional_tree) by interchange of an given edge the return
-     tree is deep copies of the original one cause gonna reuse it for all the
-     edges in it
-   */
-  void nearest_neighbor_interchage(int a, int b, int a_child, int b_child) {
-    // given an edge (node1, node2)
-    // b_child is the child of b to exchange with a's left child
-    int idx_a = this->unrooted_undirectional_idx_arr.get()[a];
-    int idx_b = this->unrooted_undirectional_idx_arr.get()[b];
-    int idx_a_child = this->unrooted_undirectional_idx_arr.get()[a_child];
-    int idx_b_child = this->unrooted_undirectional_idx_arr.get()[b_child];
-    while (this->cur_unrooted_undirectional_tree.get()[idx_a] != a_child) {
-      idx_a++;
-    }
-    while (this->cur_unrooted_undirectional_tree.get()[idx_b] != b_child) {
-      idx_b++;
-    }
-    while (this->cur_unrooted_undirectional_tree.get()[idx_a_child] != a) {
-      idx_a_child++;
-    }
-    while (this->cur_unrooted_undirectional_tree.get()[idx_b_child] != b) {
-      idx_b_child++;
-    }
-    this->cur_unrooted_undirectional_tree.get()[idx_a] = b_child;
-    this->cur_unrooted_undirectional_tree.get()[idx_b] = a_child;
-    this->cur_unrooted_undirectional_tree.get()[idx_a_child] = b;
-    this->cur_unrooted_undirectional_tree.get()[idx_b_child] = a;
-  }
-
-  // make the unrooted & undirectional tree rooted & directional
-  // call this function every time before small parsimony to generate input for
-  // it
-  void make_tree_rooted_directional() {
-    // a deep copy for rooted_char_list (we want to keep a clean original copy
-    // of this) unrooted_undirectional_tree to rooted_directional_tree
-    // unrooted_undirectional_idx_arr to rooted_directional_idx_arr
-    auto tmp_undirected_idx = this->unrooted_undirectional_idx_arr.get();
-    auto tmp_neighbor_arr = this->cur_unrooted_undirectional_tree.get();
-    auto tmp_directed_idx = this->rooted_directional_idx_arr.get();
-    auto tmp_children_arr = this->rooted_directional_tree.get();
-
-    int root = this->num_nodes;
-    int left = this->num_nodes - 1;
-    int right = tmp_neighbor_arr[tmp_undirected_idx[left]];
-    int next_children = 0;
-
-    for (int i = 0; i < this->num_nodes + 1; ++i) {
-      tmp_directed_idx[i] = -1;
-    }
-
-    auto temp_start = next_children;
-    tmp_directed_idx[root] = temp_start;
-    tmp_children_arr[temp_start++] = left;
-    tmp_children_arr[temp_start++] = right;
-    next_children = temp_start;
-
-    queue<int> q;
-    q.emplace(left);
-    q.emplace(right);
-    unordered_set<int> visited;
-    visited.insert(root);
-    visited.insert(left);
-    visited.insert(right);
-
-    while (!q.empty()) {
-      auto cur_node = q.front();
-      q.pop();
-
-      if (cur_node < num_leaves) {
-        continue;
-      }
-
-      auto undirected_start_pos = tmp_undirected_idx[cur_node];
-      auto directed_start_pos = next_children;
-      tmp_directed_idx[cur_node] = directed_start_pos;
-      for (int i = undirected_start_pos; i < undirected_start_pos + 3; ++i) {
-        auto neighbor = tmp_neighbor_arr[i];
-        if (visited.find(neighbor) == visited.end()) {
-          tmp_children_arr[directed_start_pos++] = neighbor;
-          q.emplace(neighbor);
-          visited.insert(neighbor);
-        }
-      }
-      next_children = directed_start_pos;
-    }
-  }
-
-  // return edges array containing only the internal edges denoted as (a, b) for
-  // the internal exchange for unrooted & undirectional tree
-  shared_ptr<int> get_edges_from_unrooted_undirectional_tree() {
-    for (int i = this->num_leaves; i < this->num_nodes; i++) {
-      this->visited.get()[i] = false;
-    }
-    int edges_ptr = 0;
-    for (int i = this->num_leaves; i < this->num_nodes; i++) {
-      int a = i;
-      this->visited.get()[a] = true;
-      int b_idx = this->unrooted_undirectional_idx_arr.get()[i];
-      for (int j = b_idx; j < b_idx + 3; j++) {
-        int b = this->unrooted_undirectional_tree.get()[j];
-        if (b >= this->num_leaves &&
-            !this->visited.get()[b]) {  // edge(a-b) is an internal edge
-          this->edges.get()[edges_ptr++] = a;
-          this->edges.get()[edges_ptr++] = b;
-        }
-      }
-    }
-    return this->edges;
-  }
-
-  // creat a deep copy of shared_ptr array and add the ptr to deque
-  template <class T>
-  void deep_copy_push_back(deque<shared_ptr<T>>& queue, shared_ptr<T> array,
-                           int num) {  // must use &
-    // first make a deep copy of array
-    shared_ptr<T> array_copy =
-        shared_ptr<T>(new T[num], [](T* p) { delete[] p; });
-    for (int i = 0; i < num; i++) {
-      array_copy.get()[i] = array.get()[i];
-    }
-    queue.push_back(array_copy);
-  }
   // Main entrance function
   void run_large_parsimony() {
     /*
@@ -454,15 +170,17 @@ class LargeParsimony {
       for (; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr) {
         this->unrooted_undirectional_tree = *tree_i_ptr;
         // get all edges for this->unrooted_undirectional_tree
-        shared_ptr<int> edges =
-            get_edges_from_unrooted_undirectional_tree();  // write to
-                                                           // this->edges;
-                                                           // this->visited
+        this->edges = get_edges_from_unrooted_undirectional_tree(
+            this->num_leaves, this->num_nodes, this->unrooted_undirectional_idx_arr,
+            this->unrooted_undirectional_tree, this->edges,
+            this->visited);  // write to
+                             // this->edges;
+                             // this->visited
         // For each edge, exchange the internal edges to get 2 new trees
         int length = this->num_edges * 2;
         for (int i = 0; i < length; i += 2) {
-          int a = edges.get()[i];
-          int b = edges.get()[i + 1];
+          int a = this->edges.get()[i];
+          int b = this->edges.get()[i + 1];
           int a_child_idx = this->unrooted_undirectional_idx_arr.get()[a];
           int a_child = this->unrooted_undirectional_tree.get()[a_child_idx];
           a_child =
@@ -493,17 +211,25 @@ class LargeParsimony {
             }
             // begin interchange
             nearest_neighbor_interchage(
-                a, b, a_child,
-                b_child);  // writed to this->cur_unrooted_undirectional_tree
-            make_tree_rooted_directional();  // write to
+                a, b, a_child, b_child, this->unrooted_undirectional_idx_arr,
+                this->cur_unrooted_undirectional_tree);  // writed to
+                                                         // this->cur_unrooted_undirectional_tree
+            make_tree_rooted_directional(this->unrooted_undirectional_idx_arr,
+                                         this->cur_unrooted_undirectional_tree,
+                                         this->rooted_directional_idx_arr,
+                                         this->rooted_directional_tree,
+                                         this->num_nodes);  // write to
             // this->rooted_directional_idx_arr;
             // this->rooted_directional_tree;
             // need to get the char list copy below
             int rooted_char_list_len =
                 (this->num_nodes + 1) * this->num_char_trees;
             for (int i = 0; i < rooted_char_list_len; i++) {
-              this->cur_rooted_char_list.get()[i] =
-                  this->rooted_char_list.get()[i];
+              char cur_c = this->rooted_char_list.get()[i];
+              // preprocess rooted_char_list, converti it from char to char(int)
+              if (cur_c == 'A' || cur_c == 'C' || cur_c == 'G' || cur_c == 'T') {
+                this->cur_rooted_char_list.get()[i] = this->map_char_idx.get()[cur_c - 'A'];
+              }
             }
             // #################run small parsimony###########################
             // new a string list to conatain final tree characters assignments
