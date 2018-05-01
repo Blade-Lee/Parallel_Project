@@ -58,7 +58,7 @@ class LargeParsimony {
                  shared_ptr<int> unrooted_undirectional_idx_arr,
                  shared_ptr<char> rooted_char_list, int num_nodes,
                  int num_leaves, int num_char_trees) {
-    cout << "Large Parsimony constructed." << endl;
+    // cout << "Large Parsimony constructed." << endl;
 
     this->num_nodes = num_nodes;
     this->num_leaves = num_leaves;
@@ -95,7 +95,7 @@ class LargeParsimony {
     this->visited = shared_ptr<bool>(new bool[this->num_nodes],
                                      [](bool* p) { delete[] p; });
   }
-  ~LargeParsimony() { cout << "Large Parsimony deconstructed." << endl; }
+  ~LargeParsimony() {}
 
   /*
       get a new (unrooted_undirectional_tree,) from old

@@ -9,3 +9,8 @@ output
 .idea
 CMakeLists.txt
 cmake-build-debug/
+crun-seq
+crun-par
+*.dSYM
+*.pyc
+data/test_input.txt
