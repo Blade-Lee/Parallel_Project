@@ -121,12 +121,6 @@ def run_small_parsimony_one_tree_unrooted(T, character_list):
     # backtrack_tree = {node: {"str": xxx, "children": [...]}, ...}
     tree_list = []
 
-    # print("Small input tree")
-    # for i, j in T.items():
-    #     print("{} : {}".format(i, j))
-    # for i in character_list:
-    #     print(i)
-
     total = 0
     for each in character_list:
         # backtrack_tree is undirected
@@ -262,6 +256,10 @@ def nearest_neighbor_interchage(T, character_list):
                     elif neighborScore == new_score:
                         new_tree_list.append(temp_tree)
 
-    output_str_set = {serialize_tree(score, tree) for tree in new_tree_list}
+    if len(new_tree_list) > 0:
+        out_list = new_tree_list
+    else:
+        out_list = tree_list
+    output_str_set = {serialize_tree(score, tree) for tree in out_list}
 
     return "\n-----\n".join([i for i in output_str_set]) + "\n-----"

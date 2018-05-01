@@ -153,7 +153,7 @@ void runBaseline(string file_name, string outfile_name) {
   deque<shared_ptr<string>> string_list_queue =
       large_parsimony.get()->string_list_queue;
 
-  cout << "Writing result to file..." << endl;
+  // cout << "Writing result to file..." << endl;
   ofstream myfile;
   myfile.open(outfile_name);
   auto tree_i_ptr = unrooted_undirectional_tree_queue.begin();
@@ -184,9 +184,7 @@ void runBaseline(string file_name, string outfile_name) {
     myfile << "-----\n";
   }
   myfile.close();
-  cout << "Finished." << endl;
+  // cout << "Finished." << endl;
 }
 
-int main(int argc, const char *argv[]) {
-  runBaseline("data/dataset_38507_8.txt", "output/cpp_result.txt");
-}
+int main(int argc, const char *argv[]) { runBaseline(argv[1], argv[2]); }

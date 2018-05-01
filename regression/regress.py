@@ -3,7 +3,11 @@ import sys
 import copy
 import random
 from collections import deque
-sys.path.append('../parsimony_python')
+from subprocess import call
+
+os.chdir(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append('parsimony_python')
+
 from parsimony import *
 from parsimony_util import *
 
@@ -105,6 +109,9 @@ def run_python_baseline(file_name, outfile_name):
 
     write_result(outfile_name, result)
 
+def run_cpp_seq(file_name, outfile_name):
+    call(["./crun-seq", file_name, outfile_name])
+
 
 def get_tree_char(trees_list):
     T_list = []
@@ -148,17 +155,37 @@ def validate_tree(tree_tuple):
 
     visited = set()
     tree_score = 0
-    for i in T:
-        for j in T[i]:
-            if not (i in visited and j in visited):
-                tree_score += hamming_distance(chars[i], chars[j])
-                visited.add(i)
-                visited.add(j)
+    q = deque()
+    q.append(0)
+    visited.add(0)
+
+    while len(q) > 0:
+        top = q.popleft()
+        top_chars = chars[top]
+
+        for child in T[top]:
+            if child not in visited:
+                child_chars = chars[child]
+                tree_score += hamming_distance(top_chars, child_chars)
+                q.append(child)
+                visited.add(child)
 
     if tree_score != score:
         return False, "Score Mismatch: min_score[{}] tree_score[{}]".format(score, tree_score)
 
     return True, "Valid Tree"
+
+def get_leaves(tree_tuple):
+    score = tree_tuple[0]
+    T = tree_tuple[1]
+    chars = tree_tuple[2]
+
+    leaves = set()
+    for i in T:
+        if 1 == len(T[i]):
+            leaves.add(chars[i])
+
+    return leaves
 
 
 def compare_two_files(file_1_name, file_2_name):
@@ -193,6 +220,18 @@ def compare_two_files(file_1_name, file_2_name):
     if file_1_score != file_2_score:
         return False, "Minimum Score Mismatch: file_1 [{}] file_2 [{}]".format(file_1_score, file_2_score)
 
+    baseline_leaves = get_leaves(T_list_1[0])
+
+    for each in T_list_1:
+        leaves = get_leaves(each)
+        if baseline_leaves != leaves:
+            return False, "Leaves mismatch for file 1"
+
+    for each in T_list_2:
+        leaves = get_leaves(each)
+        if baseline_leaves != leaves:
+            return False, "Leaves mismatch for file 2"
+
     for each in T_list_1:
         result, error_info = validate_tree(each)
         if not result:
@@ -207,21 +246,27 @@ def compare_two_files(file_1_name, file_2_name):
 
 
 def main():
-    new_input_file = "../data/test_input.txt"
-    input_file = "../data/dataset_38507_8.txt"
-    python_outfile = "../output/python_result.txt"
-    cpp_outfile = "../output/cpp_result.txt"
 
-    num_leaves = 5
-    str_len = 50
-    tree = generate_tree_structure(num_leaves)
-    assigment = assign_strings(tree, str_len)
-    generate_input_file(tree, assigment, new_input_file)
+    new_input_file = "data/test_input.txt"
+    input_file = "data/dataset_38507_8.txt"
+    python_outfile = "output/python_result.txt"
+    cpp_outfile = "output/cpp_result.txt"
 
-    run_python_baseline(input_file, python_outfile)
+    num_leaves = 10
+    str_len = 60
+    epoch = 20
 
-    # result = compare_two_files(python_outfile, cpp_outfile)
-    # print(result)
+    for i in range(epoch):
+        print("epoch [{}]".format(i + 1))
+        tree = generate_tree_structure(num_leaves)
+        assigment = assign_strings(tree, str_len)
+        generate_input_file(tree, assigment, new_input_file)
+
+        run_python_baseline(new_input_file, python_outfile)
+        run_cpp_seq(new_input_file, cpp_outfile)
+
+        result = compare_two_files(python_outfile, cpp_outfile)
+        print(result)
    
 
 if __name__ == '__main__':
