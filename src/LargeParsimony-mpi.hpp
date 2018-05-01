@@ -27,6 +27,8 @@ class LargeParsimony {
   int num_leaves;
   int num_edges;
   int unrooted_undirectional_tree_len;
+  int rooted_directional_tree_len;
+  int rooted_char_list_len;
   shared_ptr<int>
       unrooted_undirectional_tree;  // n nodes, leaf has 1 edge, other 3, always
                                     // chage after calling
@@ -47,6 +49,7 @@ class LargeParsimony {
   shared_ptr<int> rooted_directional_tree;  // (n+1) nodes, parent-children arr
   shared_ptr<int> rooted_directional_idx_arr;  // (n+1) nodes
   shared_ptr<char> cur_rooted_char_list;       // (n+1) * (str_len) nodes
+  shared_ptr<string> string_list;
   shared_ptr<int>
       edges;  // for get_edges_from_unrooted_undirectional_tree() use
   shared_ptr<bool>
@@ -78,11 +81,12 @@ class LargeParsimony {
     // rooted_char_list is never change so input size is (str_len)*(N + 1),
     // rooted
     this->rooted_char_list = rooted_char_list;
+    this->rooted_directional_tree_len = (num_nodes + 1 - num_leaves) * 2;
     this->rooted_directional_tree = shared_ptr<int>(
-        new int[(num_nodes + 1 - num_leaves) * 2], [](int* p) { delete[] p; });
+        new int[this->rooted_directional_tree_len], [](int* p) { delete[] p; });
     this->rooted_directional_idx_arr =
         shared_ptr<int>(new int[num_nodes + 1], [](int* p) { delete[] p; });
-    int rooted_char_list_len = (num_nodes + 1) * num_char_trees;
+    this->rooted_char_list_len = (num_nodes + 1) * num_char_trees;
     // internal char->int tool
     this->map_char_idx = unique_ptr<char[]>(new char[26]);  // map each char to a index
     this->map_char_idx.get()['A' - 'A'] = 0;
@@ -91,8 +95,8 @@ class LargeParsimony {
     this->map_char_idx.get()['T' - 'A'] = 3;
     // need to get the char list copy below
     this->cur_rooted_char_list = shared_ptr<char>(
-        new char[rooted_char_list_len], [](char* p) { delete[] p; });
-    for (int i = 0; i < rooted_char_list_len; i++) {
+        new char[this->rooted_char_list_len], [](char* p) { delete[] p; });
+    for (int i = 0; i < this->rooted_char_list_len; i++) {
       char cur_c = this->rooted_char_list.get()[i];
       // preprocess rooted_char_list, converti it from char to char(int)
       if (cur_c == 'A' || cur_c == 'C' || cur_c == 'G' || cur_c == 'T') {
@@ -397,6 +401,53 @@ class LargeParsimony {
     }
     queue.push_back(array_copy);
   }
+  // creat a shallow copy of shared_ptr array and add the ptr to deque
+  template <class T>
+  void shallow_copy_push_back(deque<shared_ptr<T>>& queue, shared_ptr<T> array) {  // must use &
+    queue.push_back(array);
+  }
+
+  // Gather all information for running SmallParsimony (This way too many deep copies)
+  void gather_information(
+      shared_ptr<int>* unrooted_undirectional_tree_global_arr,
+      shared_ptr<int>* rooted_directional_tree_global_arr,
+      shared_ptr<int>* rooted_directional_idx_global_arr,
+      shared_ptr<char>* rooted_char_list_global_arr,
+      shared_ptr<string>* string_list_global_arr,
+      int* cur_unrooted_undirectional_tree, int* rooted_directional_tree,
+      int* rooted_directional_idx_arr, char* cur_rooted_char_list,
+      int global_arr_idx, int n1, int n2,
+      int n3, int n4, int n5) {
+    // Duplication spaces
+    shared_ptr<int> cur_unrooted_undirectional_tree_copy = shared_ptr<int>(new int[n1], [](int* p){delete[] p;});
+    shared_ptr<int> rooted_directional_tree_copy = shared_ptr<int>(new int[n2], [](int* p){delete[] p;});
+    shared_ptr<int> rooted_directional_idx_arr_copy = shared_ptr<int>(new int[n3], [](int* p){delete[] p;});
+    shared_ptr<char> cur_rooted_char_list_copy = shared_ptr<char>(new char[n4], [](char* p){delete[] p;});
+    shared_ptr<string> string_list_copy = shared_ptr<string>(new string[n5], [](string* p) {delete[] p;});
+
+    // Initialization
+    for(int i = 0; i < n1; i++){
+      cur_unrooted_undirectional_tree_copy.get()[i] = cur_unrooted_undirectional_tree[i];
+    }
+    for(int i = 0; i < n2; i++){
+      rooted_directional_tree_copy.get()[i] = rooted_directional_tree[i];
+    }
+    for(int i = 0; i < n3; i++){
+      rooted_directional_idx_arr_copy.get()[i] = rooted_directional_idx_arr[i];
+    }
+    for(int i = 0; i < n4; i++){
+      cur_rooted_char_list_copy.get()[i] = cur_rooted_char_list[i];
+    }
+    for (int i = 0; i < this->num_nodes; i++) {
+      string_list_copy.get()[i] = "";
+    }
+    // Assignment
+    unrooted_undirectional_tree_global_arr[global_arr_idx] = cur_unrooted_undirectional_tree_copy;
+    rooted_directional_tree_global_arr[global_arr_idx] = rooted_directional_tree_copy;
+    rooted_directional_idx_global_arr[global_arr_idx] = rooted_directional_idx_arr_copy;
+    rooted_char_list_global_arr[global_arr_idx] = cur_rooted_char_list_copy;
+    string_list_global_arr[global_arr_idx] = string_list_copy;
+  }
   // Main entrance function
   void run_large_parsimony() {
     /*
@@ -415,18 +466,18 @@ class LargeParsimony {
                                  this->num_nodes);
     // #################run small parsimony###########################
     // new a string list to conatain final tree characters assignments
-    shared_ptr<string> string_list =
+    this->string_list =
         shared_ptr<string>(new string[this->num_nodes], [](string* p) {
           delete[] p;
         });  // N, assign each of node a string finally
     for (int i = 0; i < this->num_nodes; i++) {
-      string_list.get()[i] = "";
+      this->string_list.get()[i] = "";
     }
     // run small parsimony
     int small_parsimony_total_score = run_small_parsimony_string(
         this->num_char_trees, this->cur_rooted_char_list.get(),
         this->rooted_directional_tree.get(),
-        this->rooted_directional_idx_arr.get(), string_list.get(),
+        this->rooted_directional_idx_arr.get(), this->string_list.get(),
         this->num_nodes + 1);
     // ################################################################
 
@@ -440,7 +491,7 @@ class LargeParsimony {
                              this->unrooted_undirectional_tree,
                              this->unrooted_undirectional_tree_len);
     deep_copy_push_back<string>(this->tmp_string_list_queue,
-                                string_list,
+                                this->string_list,
                                 this->num_nodes);
     while (!this->tmp_unrooted_undirectional_tree_queue.empty()) {
       // cout<<"----------------size of tmp list--------"<<
@@ -458,11 +509,30 @@ class LargeParsimony {
           new_score--;  // should use new_score -1 is for comparation (here
                         // compatible with weichen's code)
 
-      auto tree_i_ptr = this->unrooted_undirectional_tree_queue.begin();
+      auto tree_start = this->unrooted_undirectional_tree_queue.begin();
       auto tree_end = this->unrooted_undirectional_tree_queue.end();
       auto string_i_ptr = this->string_list_queue.begin();
 
-      for (; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr) {
+      // Allocate global internal array
+      int global_arr_len = this->unrooted_undirectional_tree_queue.size() * this->num_edges * 2;
+      shared_ptr<shared_ptr<int>> unrooted_undirectional_tree_global_arr =
+          shared_ptr<shared_ptr<int>>(new shared_ptr<int>[global_arr_len],
+                          [](shared_ptr<int>* p) { delete[] p; });
+      shared_ptr<shared_ptr<int>> rooted_directional_tree_global_arr =
+          shared_ptr<shared_ptr<int>>(new shared_ptr<int>[global_arr_len],
+                          [](shared_ptr<int>* p) { delete[] p; });
+      shared_ptr<shared_ptr<int>> rooted_directional_idx_global_arr =
+          shared_ptr<shared_ptr<int>>(new shared_ptr<int>[global_arr_len],
+                          [](shared_ptr<int>* p) { delete[] p; });
+      shared_ptr<shared_ptr<char>> rooted_char_list_global_arr =
+          shared_ptr<shared_ptr<char>>(new shared_ptr<char>[global_arr_len],
+                                       [](shared_ptr<char>* p) { delete[] p; });
+      // Allocate global output array
+      shared_ptr<int> score_global_arr =
+          shared_ptr<int>(new int[global_arr_len], [](int* p) { delete[] p; });
+      shared_ptr<shared_ptr<string>> string_list_global_arr =
+          shared_ptr<shared_ptr<string>>(new shared_ptr<string>[global_arr_len], [](shared_ptr<string>* p) { delete[] p; });
+      for (auto tree_i_ptr = tree_start; tree_i_ptr != tree_end; ++tree_i_ptr, ++string_i_ptr) {
         this->unrooted_undirectional_tree = *tree_i_ptr;
         // get all edges for this->unrooted_undirectional_tree
         get_edges_from_unrooted_undirectional_tree(
@@ -505,13 +575,15 @@ class LargeParsimony {
               this->cur_unrooted_undirectional_tree.get()[i] =
                   this->unrooted_undirectional_tree.get()[i];
             }
-            // begin interchange
+            // ##############cur_unrooted_undirectional_tree GET#################
             nearest_neighbor_interchage(
                 a, b, a_child, b_child,
                 this->unrooted_undirectional_idx_arr.get(),
-                this->cur_unrooted_undirectional_tree
-                    .get());  // writed to
+                this->cur_unrooted_undirectional_tree.get());  // writed to
                               // this->cur_unrooted_undirectional_tree
+            // ##################################################################
+
+            // ############unrooted_undirectional_idx_arr/tree GET###############
             make_tree_rooted_directional(this->unrooted_undirectional_idx_arr.get(),
                                          this->cur_unrooted_undirectional_tree.get(),
                                          this->rooted_directional_idx_arr.get(),
@@ -520,6 +592,9 @@ class LargeParsimony {
                                                             // this->rooted_directional_idx_arr;
                                                             // this->rooted_directional_tree;
                                                             // need to get the char list copy below
+            // ##################################################################
+
+            // #################cur_rooted_char_list GET#########################
             int rooted_char_list_len =
                 (this->num_nodes + 1) * this->num_char_trees;
             for (int i = 0; i < rooted_char_list_len; i++) {
@@ -529,43 +604,57 @@ class LargeParsimony {
                 this->cur_rooted_char_list.get()[i] = this->map_char_idx.get()[cur_c - 'A'];
               }
             }
-            // #################run small parsimony###########################
-            // new a string list to conatain final tree characters assignments
-            string_list =
-                shared_ptr<string>(new string[this->num_nodes], [](string* p) {
-                  delete[] p;
-                });  // N, assign each of node a string finally
-            for (int i = 0; i < this->num_nodes; i++) {
-              string_list.get()[i] = "";
-            }
-            // Main logic
-            small_parsimony_total_score = run_small_parsimony_string(
-                this->num_char_trees, this->cur_rooted_char_list.get(),
-                this->rooted_directional_tree.get(),
-                this->rooted_directional_idx_arr.get(), string_list.get(),
-                this->num_nodes + 1);
-            // ################################################################
+            // ##################################################################
 
-            // record the minmal one
-            if (small_parsimony_total_score <= new_score) {  // compare
-              if (small_parsimony_total_score < new_score) {
-                // first clear tmp list
-                this->tmp_unrooted_undirectional_tree_queue.clear();
-                this->tmp_string_list_queue.clear();
-                new_score = small_parsimony_total_score;
-              }
-              // cout << "^^^^^^^in^^^^^^"<<endl;
-              // add to tmp list
-              deep_copy_push_back<int>(
-                  this->tmp_unrooted_undirectional_tree_queue,
-                  cur_unrooted_undirectional_tree,
-                  this->unrooted_undirectional_tree_len);
-              deep_copy_push_back<string>(this->tmp_string_list_queue,
-                                          string_list, this->num_nodes);
-            }
+            // ######################Gather all information######################
+            int global_arr_idx = (tree_i_ptr - tree_start) * this->num_edges * 2 + i + j;
+            gather_information(
+                unrooted_undirectional_tree_global_arr.get(),
+                rooted_directional_tree_global_arr.get(),
+                rooted_directional_idx_global_arr.get(),
+                rooted_char_list_global_arr.get(), string_list_global_arr.get(),
+                this->cur_unrooted_undirectional_tree.get(),
+                this->rooted_directional_tree.get(),
+                this->rooted_directional_idx_arr.get(),
+                this->cur_rooted_char_list.get(), global_arr_idx,
+                this->unrooted_undirectional_tree_len,
+                this->rooted_directional_tree_len, this->num_nodes + 1, this->rooted_char_list_len, this->num_nodes);
           }
+        }
+      }
+      for(int i = 0; i <  global_arr_len; i++){
+        // ##################run smallparsimony############################
+        small_parsimony_total_score = run_small_parsimony_string(
+            this->num_char_trees, rooted_char_list_global_arr.get()[i].get(),
+            rooted_directional_tree_global_arr.get()[i].get(),
+            rooted_directional_idx_global_arr.get()[i].get(),
+            string_list_global_arr.get()[i].get(), this->num_nodes + 1);
+        score_global_arr.get()[i] = small_parsimony_total_score;
+        // ##################################################################
+      }
+      // record the minmal one
+      for(int i = 0; i <  global_arr_len; i++){
+        small_parsimony_total_score = score_global_arr.get()[i];
+        if (small_parsimony_total_score <= new_score) {  // compare
+          if (small_parsimony_total_score < new_score) {
+            // first clear tmp list
+            this->tmp_unrooted_undirectional_tree_queue.clear();
+            this->tmp_string_list_queue.clear();
+            new_score = small_parsimony_total_score;
+          }
+          // cout << "^^^^^^^in^^^^^^"<<endl;
+          // add to tmp list
+          shallow_copy_push_back<int>(
+              this->tmp_unrooted_undirectional_tree_queue,
+              unrooted_undirectional_tree_global_arr.get()[i]);
+          shallow_copy_push_back<string>(this->tmp_string_list_queue,
+                                      string_list_global_arr.get()[i]);
         }
       }
     }
   }
 };
+
+
+
+        
