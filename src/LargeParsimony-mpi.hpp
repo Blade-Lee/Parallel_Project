@@ -10,7 +10,7 @@
 #define LargeParsimony_hpp
 /* Defining variable OMP enables use of OMP primitives */
 #ifndef OMP
-#define OMP 0
+#define OMP 1
 #endif
 
 /* Defining variable MPI enables use of MPI primitives */
@@ -524,8 +524,8 @@ class LargeParsimony {
         // For each edge, exchange the internal edges to get 2 new trees
         int length = this->num_edges * 2;
         int i = 0;
-        // omp_set_num_threads(this->num_threads);
-        // #pragma omp parallel for private(i)
+        omp_set_num_threads(this->num_threads);
+#pragma omp parallel for private(i)
         for (; i < length; i += 2) {
           int a = this->edges.get()[i];
           int b = this->edges.get()[i + 1];
