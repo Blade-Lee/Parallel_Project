@@ -525,8 +525,10 @@ class LargeParsimony {
         int length = this->num_edges * 2;
         int i = 0;
         omp_set_num_threads(this->num_threads);
-#pragma omp parallel for private(i)
-        for (; i < length; i += 2) {
+#pragma omp parallel for private(                                       \
+    i, cur_unrooted_undirectional_tree, cur_rooted_directional_idx_arr, \
+    cur_rooted_directional_tree, cur_rooted_char_list, cur_string_list)
+        for (i = 0; i < length; i += 2) {
           int a = this->edges.get()[i];
           int b = this->edges.get()[i + 1];
           int a_child_idx = this->unrooted_undirectional_idx_arr.get()[a];
@@ -611,7 +613,10 @@ class LargeParsimony {
           }
         }
       }
-      for (int i = 0; i < global_arr_len; i++) {
+      int i;
+      omp_set_num_threads(this->num_threads);
+#pragma omp parallel for private(i, small_parsimony_total_score)
+      for (i = 0; i < global_arr_len; i++) {
         // ##################run smallparsimony############################
         small_parsimony_total_score = run_small_parsimony_string(
             this->num_char_trees, rooted_char_list_global_arr.get()[i].get(),
@@ -622,7 +627,7 @@ class LargeParsimony {
         // ##################################################################
       }
       // record the minmal one
-      for (int i = 0; i < global_arr_len; i++) {
+      for (i = 0; i < global_arr_len; i++) {
         small_parsimony_total_score = score_global_arr.get()[i];
         if (small_parsimony_total_score <= new_score) {  // compare
           if (small_parsimony_total_score < new_score) {
