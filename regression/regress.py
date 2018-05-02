@@ -112,6 +112,9 @@ def run_python_baseline(file_name, outfile_name):
 def run_cpp_seq(file_name, outfile_name):
     call(["./crun-seq", file_name, outfile_name])
 
+def run_cpp_omp(file_name, outfile_name, num_threads):
+    call(["./crun-omp", file_name, outfile_name, num_threads])
+
 
 def get_tree_char(trees_list):
     T_list = []
@@ -250,7 +253,11 @@ def main():
     new_input_file = "data/test_input.txt"
     input_file = "data/dataset_38507_8.txt"
     python_outfile = "output/python_result.txt"
-    cpp_outfile = "output/cpp_result.txt"
+    cpp_seq_outfile = "output/cpp_seq_result.txt"
+    cpp_omp_outfile = "output/cpp_omp_result.txt"
+
+
+    num_threads = 4
 
     num_leaves = 10
     str_len = 60
@@ -262,10 +269,11 @@ def main():
         assigment = assign_strings(tree, str_len)
         generate_input_file(tree, assigment, new_input_file)
 
-        run_python_baseline(new_input_file, python_outfile)
-        run_cpp_seq(new_input_file, cpp_outfile)
+        # run_python_baseline(new_input_file, python_outfile)
+        run_cpp_seq(new_input_file, cpp_seq_outfile)
+        run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
 
-        result = compare_two_files(python_outfile, cpp_outfile)
+        result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
         print(result)
    
 
