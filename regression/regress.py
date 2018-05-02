@@ -2,6 +2,7 @@ import os
 import sys
 import copy
 import random
+import time
 from collections import deque
 from subprocess import call
 
@@ -261,7 +262,11 @@ def main():
 
     num_leaves = 10
     str_len = 60
-    epoch = 20
+    epoch = 10
+
+    total_python_time = 0
+    total_cpp_seq_time = 0
+    total_cpp_omp_time = 0
 
     for i in range(epoch):
         print("epoch [{}]".format(i + 1))
@@ -269,12 +274,33 @@ def main():
         assigment = assign_strings(tree, str_len)
         generate_input_file(tree, assigment, new_input_file)
 
-        # run_python_baseline(new_input_file, python_outfile)
-        run_cpp_seq(new_input_file, cpp_seq_outfile)
-        run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
+        python_start_time = time.time()
+        run_python_baseline(new_input_file, python_outfile)
+        python_end_time = time.time()
 
-        result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
+        cpp_seq_start_time = time.time()
+        run_cpp_seq(new_input_file, cpp_seq_outfile)
+        cpp_seq_end_time = time.time()
+
+        cpp_omp_start_time = time.time()
+        # run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
+        cpp_omp_end_time = time.time()
+
+        total_python_time += python_end_time - python_start_time
+        total_cpp_seq_time += cpp_seq_end_time - cpp_seq_start_time
+        total_cpp_omp_time += cpp_omp_end_time - cpp_omp_start_time
+
+        result = compare_two_files(python_outfile, cpp_seq_outfile)
+        # result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
         print(result)
+
+    avg_python_time = total_python_time / float(epoch) * 1000
+    avg_cpp_seq_time = total_cpp_seq_time / float(epoch) * 1000
+    avg_cpp_omp_time = total_cpp_omp_time / float(epoch) * 1000
+
+    print("Average python time:  [{}]ms".format(avg_python_time))
+    print("Avreage cpp seq time: [{}]ms".format(avg_cpp_seq_time))
+    print("Average cpp omp time: [{}]ms".format(avg_cpp_omp_time))
    
 
 if __name__ == '__main__':
