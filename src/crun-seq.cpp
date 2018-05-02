@@ -135,9 +135,10 @@ void runBaseline(string file_name, string outfile_name) {
   //  cout<<"Small Parsimony total score
   //  is:"<<small_parsimony->total_score<<endl;
   // run large parsimony
+  int num_threads = 1;
   shared_ptr<LargeParsimony> large_parsimony = make_shared<LargeParsimony>(
       neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves,
-      num_char_trees);
+      num_char_trees, num_threads);
   large_parsimony.get()->run_large_parsimony();
 
   int min_large_parsimony_score =
