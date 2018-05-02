@@ -113,7 +113,7 @@ def run_cpp_seq(file_name, outfile_name):
     call(["./crun-seq", file_name, outfile_name])
 
 def run_cpp_omp(file_name, outfile_name, num_threads):
-    call(["./crun-omp", file_name, outfile_name, num_threads])
+    call(["./crun-omp", file_name, outfile_name, str(num_threads)])
 
 
 def get_tree_char(trees_list):
