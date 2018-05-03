@@ -51,12 +51,12 @@ public:
       : char_list_{char_list}, idx_arr_{idx_arr}, children_arr_{children_arr},
         num_char_trees_{num_char_trees}, num_nodes_{num_nodes},
         total_score_{0} {
-    this->string_list_ = shared_ptr<string>(new string[this->num_nodes_ - 1],
-                                            [](string *p) { delete[] p; });
+    string_list_ = shared_ptr<string>(new string[num_nodes_ - 1],
+                                      [](string *p) { delete[] p; });
 
-    int char_list_len = this->num_char_trees_ * this->num_nodes_;
+    int char_list_len = num_char_trees_ * num_nodes_;
     for (int i = 0; i < char_list_len; i++) {
-      char &cur_c = this->char_list_.get()[i];
+      char &cur_c = char_list_.get()[i];
 
       switch (cur_c) {
       case 'A':
@@ -77,23 +77,23 @@ public:
     }
   }
 
-  ~SmallParsimony() {}
+  ~SmallParsimony() = default;
 
   void run_small_parsimony_string() {
-    this->total_score_ = 0;
+    total_score_ = 0;
 
     char ACGT_arr[4] = {'A', 'C', 'G', 'T'};
 
-    for (int i = 0; i < this->num_char_trees_; i++) {
-      char *cur_char_list_idx = this->char_list_.get() + i * this->num_nodes_;
+    for (int i = 0; i < num_char_trees_; i++) {
+      char *cur_char_list_idx = char_list_.get() + i * num_nodes_;
       int cur_score = run_small_parsimony_char(cur_char_list_idx);
 
       // add to final total score
-      this->total_score_ += cur_score;
+      total_score_ += cur_score;
 
       // append char list to current string list
-      for (int i = 0; i < this->num_nodes_ - 1; i++) {
-        this->string_list_.get()[i] += ACGT_arr[int(cur_char_list_idx[i])];
+      for (int i = 0; i < num_nodes_ - 1; i++) {
+        string_list_.get()[i] += ACGT_arr[int(cur_char_list_idx[i])];
       }
     }
   }
@@ -107,21 +107,21 @@ public:
   int run_small_parsimony_char(char *char_list) {
     // local allocation
     // indicate the score of node v choosing k char
-    unique_ptr<int[]> s_v_k(new int[this->num_nodes_ * 4]);
+    unique_ptr<int[]> s_v_k(new int[num_nodes_ * 4]);
     // indicate if the noed i is ripe
-    unique_ptr<unsigned char[]> tag(new unsigned char[this->num_nodes_]);
+    unique_ptr<unsigned char[]> tag(new unsigned char[num_nodes_]);
     // indicate for each node, chosen a char of 4, what is the best char for its
     // left & right children.
     unique_ptr<unsigned char[]> back_track_arr(
-        new unsigned char[this->num_nodes_ * 8]);
+        new unsigned char[num_nodes_ * 8]);
 
     // initialization (no need to initialize back_track_arr)
     auto infinity = int(1e8);
 
-    for (int i = 0; i < this->num_nodes_; i++) {
+    for (int i = 0; i < num_nodes_; i++) {
       int bias = 4 * i;
       char leaf_char = char_list[i];
-      int node_idx = this->idx_arr_.get()[i];
+      int node_idx = idx_arr_.get()[i];
       for (int j = 0; j < 4; j++) {
         // if it is a leaves & it is not the leave char, assign it to infinity
         // if -1, then it is a leaf
@@ -140,11 +140,11 @@ public:
       int ripe_node = -1;
       int daughter = -1;
       int son = -1;
-      for (int i = 0; i < this->num_nodes_; i++) {
+      for (int i = 0; i < num_nodes_; i++) {
         if (!tag.get()[i]) {
-          int bias = this->idx_arr_.get()[i];
-          daughter = this->children_arr_.get()[bias];
-          son = this->children_arr_.get()[bias + 1];
+          int bias = idx_arr_.get()[i];
+          daughter = children_arr_.get()[bias];
+          son = children_arr_.get()[bias + 1];
           if (tag.get()[daughter] && tag.get()[son]) {
             ripe_node = i;
             break;
@@ -212,11 +212,11 @@ public:
       q.pop();
 
       char min_char_idx = char_list[parent];
-      int child_idx = this->idx_arr_.get()[parent];
+      int child_idx = idx_arr_.get()[parent];
       // if it is not a leaf
       if (child_idx != -1) {
-        int left_child_id = this->children_arr_.get()[child_idx];
-        int right_child_id = this->children_arr_.get()[child_idx + 1];
+        int left_child_id = children_arr_.get()[child_idx];
+        int right_child_id = children_arr_.get()[child_idx + 1];
 
         int tmp_idx = parent * 8 + 2 * min_char_idx;
         char left_min_char_idx = back_track_arr.get()[tmp_idx];
@@ -225,9 +225,9 @@ public:
         char_list[left_child_id] = left_min_char_idx;
         char_list[right_child_id] = right_min_char_idx;
 
-        if (this->idx_arr_.get()[left_child_id] != -1)
+        if (idx_arr_.get()[left_child_id] != -1)
           q.push(left_child_id);
-        if (this->idx_arr_.get()[right_child_id] != -1)
+        if (idx_arr_.get()[right_child_id] != -1)
           q.push(right_child_id);
       }
     }

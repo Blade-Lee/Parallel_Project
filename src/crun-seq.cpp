@@ -14,7 +14,7 @@
 void runBaseline(string file_name, string outfile_name) {
   auto lines = readLines(file_name);
   int num_leaves = stoi(lines.front());
-  int cur_leave = num_leaves - 1;  
+  int cur_leave = num_leaves - 1;
 
   lines.pop();
   unordered_map<string, int> assign;
@@ -32,6 +32,7 @@ void runBaseline(string file_name, string outfile_name) {
 
     connectNeighborPair(neighbors, first, second);
   }
+
   int num_char_trees = (assign.begin()->first).length();
 
   // Convert from Neighbor Map to Undirected Tree
@@ -43,25 +44,6 @@ void runBaseline(string file_name, string outfile_name) {
   auto neighbor_arr = shared_ptr<int>(new int[num_undirected_edges * 2],
                                       [](int *p) { delete[] p; });
   convertNeighborsToUndirectedArr(neighbors, undirected_idx, neighbor_arr);
-
-  // for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
-  //   cout << it->first << endl;
-  //   for (auto sit = (it->second).begin(); sit != (it->second).end(); ++sit) {
-  //     cout << "--" << *sit << endl;
-  //   }
-  // }
-
-  // cout << "------------------" << endl;
-
-  // auto temp_idx = undirected_idx.get();
-  // auto temp_arr = neighbor_arr.get();
-  // for (int i = 0; i < num_undirected_nodes; ++i) {
-  //   cout << i << endl;
-  //   int j_max = i < num_leaves ? 1 : 3;
-  //   for (int j = temp_idx[i]; j < temp_idx[i] + j_max; ++j) {
-  //     cout << "--" << temp_arr[j] << endl;
-  //   }
-  // }
 
   // Directed Tree
   int num_directed_nodes = max_node_idx + 2;
@@ -79,60 +61,8 @@ void runBaseline(string file_name, string outfile_name) {
   covertUndirectedToDirected(num_undirected_nodes, num_leaves, undirected_idx,
                              neighbor_arr, directed_idx, children_arr);
 
-  // cout << "------------------" << endl;
-
-  // temp_idx = directed_idx.get();
-  // temp_arr = children_arr.get();
-  // for (int i = 0; i < num_directed_nodes; ++i) {
-  //   cout << i << endl;
-  //   if (i < num_leaves) {
-  //     cout << "--" << endl;
-  //     continue;
-  //   }
-  //   for (int j = temp_idx[i]; j < temp_idx[i] + 2; ++j) {
-  //     cout << "--" << temp_arr[j] << endl;
-  //   }
-  // }
-
-  // cout << "------------------------" << endl;
-
-  // for (int i = 0; i < num_directed_nodes; ++i) {
-  //   cout << (int)temp_idx[i] << " ";
-  // }
-  // cout << endl;
-
   initializeCharList(char_list, assign, num_char_trees, num_directed_nodes);
 
-  // auto tmp_char_list = char_list.get();
-  // for (int i = 0; i < num_leaves; ++i) {
-  //   cout << i << endl << "--";
-  //   for (int tree = 0; tree < num_char_trees; ++tree) {
-  //     cout << tmp_char_list[tree * num_directed_nodes + i];
-  //   }
-  //   cout << endl;
-  // }
-  // cout<<"number of undirected nodes: "<< num_undirected_nodes<<" number of
-  // directed nodes: "<< num_directed_nodes<<" number of char trees: "<<
-  // num_char_trees<<endl;
-  //   for(int i = 0; i < num_directed_nodes; i++){
-  //       cout<<directed_idx.get()[i]<<" ";
-  //   }
-  //   cout<<endl;
-  //   for(int i = 0; i < num_directed_internal_nodes * 2; i++){
-  //       cout<<children_arr.get()[i]<<" ";
-  //   }
-  //   cout<<endl;
-  //   for(int i = 0; i < num_directed_nodes * num_char_trees; i++){
-  //       cout<<char_list.get()[i]<<" ";
-  //   }
-  //   cout<<endl;
-  // run small parsimony
-  //  shared_ptr<SmallParsimony> small_parsimony =
-  //  make_shared<SmallParsimony>(directed_idx, children_arr, char_list,
-  //  num_char_trees, num_directed_nodes);
-  // small_parsimony->run_small_parsimony_string();
-  //  cout<<"Small Parsimony total score
-  //  is:"<<small_parsimony->total_score<<endl;
   // run large parsimony
   shared_ptr<LargeParsimony> large_parsimony = make_shared<LargeParsimony>(
       neighbor_arr, undirected_idx, char_list, num_undirected_nodes, num_leaves,
@@ -140,15 +70,14 @@ void runBaseline(string file_name, string outfile_name) {
   large_parsimony.get()->run_large_parsimony();
 
   int min_large_parsimony_score =
-      large_parsimony.get()->min_large_parsimony_score;
+      large_parsimony.get()->min_large_parsimony_score_;
   int *unrooted_undirectional_idx_arr =
-      large_parsimony.get()->unrooted_undirectional_idx_arr.get();
+      large_parsimony.get()->unrooted_undirectional_idx_arr_.get();
   deque<shared_ptr<int>> unrooted_undirectional_tree_queue =
-      large_parsimony.get()->unrooted_undirectional_tree_queue;
+      large_parsimony.get()->unrooted_undirectional_tree_queue_;
   deque<shared_ptr<string>> string_list_queue =
-      large_parsimony.get()->string_list_queue;
+      large_parsimony.get()->string_list_queue_;
 
-  // cout << "Writing result to file..." << endl;
   ofstream myfile;
   myfile.open(outfile_name);
   auto tree_i_ptr = unrooted_undirectional_tree_queue.begin();
@@ -179,7 +108,6 @@ void runBaseline(string file_name, string outfile_name) {
     myfile << "-----\n";
   }
   myfile.close();
-  // cout << "Finished." << endl;
 }
 
-int main(int argc, const char *argv[]) {  runBaseline(argv[1], argv[2]); }
+int main(int argc, const char *argv[]) { runBaseline(argv[1], argv[2]); }
