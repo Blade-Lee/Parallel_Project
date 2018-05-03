@@ -12,6 +12,13 @@
 
 using namespace std;
 
+/**
+ * Read lines from a file
+ *
+ * @param file_name : the input file
+ * @return a queue of strings, each of which is a line in file_name, with ending
+ * '\n' stripped
+ */
 queue<string> readLines(string file_name) {
   queue<string> lines;
   ifstream in(file_name.c_str());
@@ -28,12 +35,26 @@ queue<string> readLines(string file_name) {
   return lines;
 }
 
+/**
+ * Check whether a string is a number
+ *
+ * @param s : the input string
+ * @return if the string is a number
+ */
 bool isNumber(const string &s) {
   return !s.empty() &&
          find_if(s.begin(), s.end(), [](char c) { return !isdigit(c); }) ==
              s.end();
 }
 
+/**
+ * Given an input string (a node), find its corresponding node id
+ *
+ * @param assign : the assignment map for leaves
+ * @param cur_leave : the node id of the next input leave
+ * @param input_str : the input ndoe
+ * @param output_num : the id of the node in the tree
+ */
 void assign_number(unordered_map<string, int> &assign, int &cur_leave,
                    const string &input_str, int &output_num) {
   if (isNumber(input_str)) {
@@ -48,6 +69,14 @@ void assign_number(unordered_map<string, int> &assign, int &cur_leave,
   }
 }
 
+/**
+ * Given one line, extract the neighbors and store the information
+ *
+ * @param line : the input string line
+ * @param assign : the assignment map for leaves
+ * @param cur_leave : the node id of the next input leave
+ * @return : the pair of node ids in the line
+ */
 tuple<int, int> getNeighborPair(string line, unordered_map<string, int> &assign,
                                 int &cur_leave) {
   string delimiter = "->";
@@ -62,6 +91,13 @@ tuple<int, int> getNeighborPair(string line, unordered_map<string, int> &assign,
   return tuple<int, int>(first_number, second_number);
 }
 
+/**
+ * Given a pair of node ids, store their neighboring information in a map
+ *
+ * @param neighbors : the map storing neighboring information
+ * @param first : first node id
+ * @param second : second node id
+ */
 void connectNeighborPair(unordered_map<int, unordered_set<int>> &neighbors,
                          int first, int second) {
   if (neighbors.find(first) != neighbors.end()) {
@@ -77,6 +113,18 @@ void connectNeighborPair(unordered_map<int, unordered_set<int>> &neighbors,
   }
 }
 
+/**
+ * Given a neighboring map, generate two arrays for the neighboring
+ * relationships.
+ *
+ * There are N nodes and N - 1 edges in the tree, thus there are 2 * (N - 1)
+ * neighboring relationships
+ *
+ * @param neighbors : the map storing neighboring information
+ * @param undirected_idx : undirected_idx[a] == b means that the neighbors of a
+ * are stored at neighbor_arr[b]
+ * @param neighbor_arr : self-explained
+ */
 void convertNeighborsToUndirectedArr(
     const unordered_map<int, unordered_set<int>> &neighbors,
     shared_ptr<int> &undirected_idx, shared_ptr<int> &neighbor_arr) {
@@ -95,6 +143,20 @@ void convertNeighborsToUndirectedArr(
   }
 }
 
+/**
+ * Given an unrooted undirected tree (N nodes, N - 1 edges, 2 * (N - 1)
+ * neighboring relationships), generate a rooted directed tree (N + 1 nodes, N
+ * edges, N directed relationships)
+ *
+ * @param num_undirected_nodes : N
+ * @param num_leaves : number of leaves
+ * @param undirected_idx : undirected_idx[a] == b means that the neighbors of a
+ * are stored at neighbor_arr[b]
+ * @param neighbor_arr : self-explained
+ * @param directed_idx : directed_idx[a] == b means that the children of a are
+ * stored at children_arr[b]
+ * @param children_arr : self-explained
+ */
 void covertUndirectedToDirected(const int num_undirected_nodes,
                                 const int num_leaves,
                                 shared_ptr<int> &undirected_idx,
@@ -152,6 +214,13 @@ void covertUndirectedToDirected(const int num_undirected_nodes,
   }
 }
 
+/**
+ * Given a assignment map, populate the chars to a char list
+ * @param char_list : length: (str_len) * (N + 1)
+ * @param assign : the assignment map for leaves
+ * @param num_char_trees : str_len
+ * @param num_directed_nodes : N + 1
+ */
 void initializeCharList(shared_ptr<char> &char_list,
                         unordered_map<string, int> &assign, int num_char_trees,
                         int num_directed_nodes) {

@@ -239,7 +239,7 @@ class LargeParsimony {
         this->cur_rooted_char_list, this->num_char_trees, num_nodes + 1);
     small_parsimony.get()->run_small_parsimony_string();
     // initialization
-    int new_score = small_parsimony.get()->total_score;
+    int new_score = small_parsimony.get()->total_score_;
 
     // initialize deque. Noted that (new_score/new_string_list) are always the
     // minimal (score/string_list) in the
@@ -248,7 +248,7 @@ class LargeParsimony {
                              this->unrooted_undirectional_tree,
                              this->unrooted_undirectional_tree_len);
     deep_copy_push_back<string>(this->tmp_string_list_queue,
-                                small_parsimony.get()->string_list,
+                                small_parsimony.get()->string_list_,
                                 this->num_nodes);
     while (!this->tmp_unrooted_undirectional_tree_queue.empty()) {
       // cout<<"----------------size of tmp list--------"<<
@@ -331,12 +331,12 @@ class LargeParsimony {
                 this->num_nodes + 1);
             small_parsimony.get()->run_small_parsimony_string();
             // record the minmal one
-            if (small_parsimony.get()->total_score <= new_score) {  // compare
-              if (small_parsimony.get()->total_score < new_score) {
+            if (small_parsimony.get()->total_score_ <= new_score) {  // compare
+              if (small_parsimony.get()->total_score_ < new_score) {
                 // first clear tmp list
                 this->tmp_unrooted_undirectional_tree_queue.clear();
                 this->tmp_string_list_queue.clear();
-                new_score = small_parsimony.get()->total_score;
+                new_score = small_parsimony.get()->total_score_;
               }
               // cout << "^^^^^^^in^^^^^^"<<endl;
               // add to tmp list
@@ -345,7 +345,7 @@ class LargeParsimony {
                   cur_unrooted_undirectional_tree,
                   this->unrooted_undirectional_tree_len);
               deep_copy_push_back<string>(this->tmp_string_list_queue,
-                                          small_parsimony.get()->string_list,
+                                          small_parsimony.get()->string_list_,
                                           this->num_nodes);
             }
           }
