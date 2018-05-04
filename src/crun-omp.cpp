@@ -67,13 +67,13 @@ void runBaseline(string file_name, string outfile_name, int num_threads) {
   large_parsimony.get()->run_large_parsimony();
 
   int min_large_parsimony_score =
-      large_parsimony.get()->min_large_parsimony_score;
+      large_parsimony.get()->min_large_parsimony_score_;
   int *unrooted_undirectional_idx_arr =
-      large_parsimony.get()->unrooted_undirectional_idx_arr.get();
+      large_parsimony.get()->unrooted_undirectional_idx_arr_.get();
   deque<shared_ptr<int>> unrooted_undirectional_tree_queue =
-      large_parsimony.get()->unrooted_undirectional_tree_queue;
+      large_parsimony.get()->unrooted_undirectional_tree_queue_;
   deque<shared_ptr<string>> string_list_queue =
-      large_parsimony.get()->string_list_queue;
+      large_parsimony.get()->string_list_queue_;
 
   // cout << "Writing result to file..." << endl;
   ofstream myfile;
