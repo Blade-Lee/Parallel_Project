@@ -3,6 +3,7 @@ import sys
 import copy
 import random
 import time
+import argparse
 from collections import deque
 from subprocess import call
 
@@ -251,6 +252,18 @@ def compare_two_files(file_1_name, file_2_name):
 
 def main():
 
+    parser = argparse.ArgumentParser(description='Read arguments')
+    
+    parser.add_argument('-p', action='store_true', help='run Python verion')
+    parser.add_argument('-l', type=int, default=10, help='number of leaves')
+    parser.add_argument('-t', type=int, default=4, help='number of threads for OpenMP')
+    parser.add_argument('-s', type=int, default=50, help='length of string')
+    parser.add_argument('-e', type=int, default=10, help='number of epochs to run')
+
+    args = parser.parse_args()
+
+    print(args)
+
     new_input_file = "data/test_input.txt"
     input_file = "data/dataset_38507_8.txt"
     python_outfile = "output/python_result.txt"
@@ -258,24 +271,25 @@ def main():
     cpp_par_outfile = "output/cpp_par_result.txt"
 
 
-    num_threads = 4
-
-    num_leaves = 10
-    str_len = 60
-    epoch = 10
+    run_python_version = args.p
+    num_threads = args.t
+    num_leaves = args.l
+    str_len = args.s
+    epoch = args.e
 
     total_python_time = 0
     total_cpp_seq_time = 0
     total_cpp_par_time = 0
 
     for i in range(epoch):
-        print("epoch [{}]".format(i + 1))
+        print("epoch [{}]/[{}]".format(i + 1, epoch))
         tree = generate_tree_structure(num_leaves)
         assigment = assign_strings(tree, str_len)
         generate_input_file(tree, assigment, new_input_file)
 
         python_start_time = time.time()
-        run_python_baseline(new_input_file, python_outfile)
+        if run_python_version:
+            run_python_baseline(new_input_file, python_outfile)
         python_end_time = time.time()
 
         cpp_seq_start_time = time.time()
@@ -286,20 +300,28 @@ def main():
         run_cpp_par(new_input_file, cpp_par_outfile, num_threads)
         cpp_par_end_time = time.time()
 
-        total_python_time += python_end_time - python_start_time
+        if run_python_version:
+            total_python_time += python_end_time - python_start_time
         total_cpp_seq_time += cpp_seq_end_time - cpp_seq_start_time
         total_cpp_par_time += cpp_par_end_time - cpp_par_start_time
 
-        result = compare_two_files(python_outfile, cpp_seq_outfile)
-        print(result)
+        if run_python_version:
+            result = compare_two_files(python_outfile, cpp_seq_outfile)
+            if not result[0]:
+                print("result not match!")
+                exit(1)
         result = compare_two_files(cpp_seq_outfile, cpp_par_outfile)
-        print(result)
+        if not result[0]:
+            print("result not match!")
+            exit(1)
 
-    avg_python_time = total_python_time / float(epoch) * 1000
+    if run_python_version:
+        avg_python_time = total_python_time / float(epoch) * 1000
     avg_cpp_seq_time = total_cpp_seq_time / float(epoch) * 1000
     avg_cpp_par_time = total_cpp_par_time / float(epoch) * 1000
 
-    print("Average python time:  [{}]ms".format(avg_python_time))
+    if run_python_version:
+        print("Average python time:  [{}]ms".format(avg_python_time))
     print("Avreage cpp seq time: [{}]ms".format(avg_cpp_seq_time))
     print("Average cpp par time: [{}]ms".format(avg_cpp_par_time))
    
