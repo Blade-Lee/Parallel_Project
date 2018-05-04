@@ -113,8 +113,8 @@ def run_python_baseline(file_name, outfile_name):
 def run_cpp_seq(file_name, outfile_name):
     call(["./crun-seq", file_name, outfile_name])
 
-def run_cpp_omp(file_name, outfile_name, num_threads):
-    call(["./crun-omp", file_name, outfile_name, str(num_threads)])
+def run_cpp_par(file_name, outfile_name, num_threads):
+    call(["./parsimony-omp-ispc", file_name, outfile_name, str(num_threads)])
 
 
 def get_tree_char(trees_list):
@@ -255,7 +255,7 @@ def main():
     input_file = "data/dataset_38507_8.txt"
     python_outfile = "output/python_result.txt"
     cpp_seq_outfile = "output/cpp_seq_result.txt"
-    cpp_omp_outfile = "output/cpp_omp_result.txt"
+    cpp_par_outfile = "output/cpp_par_result.txt"
 
 
     num_threads = 4
@@ -266,7 +266,7 @@ def main():
 
     total_python_time = 0
     total_cpp_seq_time = 0
-    total_cpp_omp_time = 0
+    total_cpp_par_time = 0
 
     for i in range(epoch):
         print("epoch [{}]".format(i + 1))
@@ -282,26 +282,26 @@ def main():
         run_cpp_seq(new_input_file, cpp_seq_outfile)
         cpp_seq_end_time = time.time()
 
-        cpp_omp_start_time = time.time()
-        run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
-        cpp_omp_end_time = time.time()
+        cpp_par_start_time = time.time()
+        run_cpp_par(new_input_file, cpp_par_outfile, num_threads)
+        cpp_par_end_time = time.time()
 
         total_python_time += python_end_time - python_start_time
         total_cpp_seq_time += cpp_seq_end_time - cpp_seq_start_time
-        total_cpp_omp_time += cpp_omp_end_time - cpp_omp_start_time
+        total_cpp_par_time += cpp_par_end_time - cpp_par_start_time
 
         result = compare_two_files(python_outfile, cpp_seq_outfile)
         print(result)
-        result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
+        result = compare_two_files(cpp_seq_outfile, cpp_par_outfile)
         print(result)
 
     avg_python_time = total_python_time / float(epoch) * 1000
     avg_cpp_seq_time = total_cpp_seq_time / float(epoch) * 1000
-    avg_cpp_omp_time = total_cpp_omp_time / float(epoch) * 1000
+    avg_cpp_par_time = total_cpp_par_time / float(epoch) * 1000
 
     print("Average python time:  [{}]ms".format(avg_python_time))
     print("Avreage cpp seq time: [{}]ms".format(avg_cpp_seq_time))
-    print("Average cpp omp time: [{}]ms".format(avg_cpp_omp_time))
+    print("Average cpp par time: [{}]ms".format(avg_cpp_par_time))
    
 
 if __name__ == '__main__':
