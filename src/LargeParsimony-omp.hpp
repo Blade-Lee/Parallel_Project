@@ -54,7 +54,7 @@ class LargeParsimony {
       edges_;  // for get_edges_from_unrooted_undirectional_tree() use
   shared_ptr<bool>
       visited_;  // for get_edges_from_unrooted_undirectional_tree use
-  unique_ptr<char[]> map_char_idx_;
+
   deque<shared_ptr<int>> tmp_unrooted_undirectional_tree_queue_;
   deque<shared_ptr<string>> tmp_string_list_queue_;
 
@@ -77,13 +77,7 @@ class LargeParsimony {
         new int[rooted_directional_tree_len_], [](int* p) { delete[] p; });
     rooted_directional_idx_arr_ =
         shared_ptr<int>(new int[num_nodes + 1], [](int* p) { delete[] p; });
-    // internal char->int tool
-    map_char_idx_ =
-        unique_ptr<char[]>(new char[26]);  // map each char to a index
-    map_char_idx_.get()['A' - 'A'] = 0;
-    map_char_idx_.get()['C' - 'A'] = 1;
-    map_char_idx_.get()['G' - 'A'] = 2;
-    map_char_idx_.get()['T' - 'A'] = 3;
+
     // below for get_edges_from_unrooted_undirectional_tree() use
     edges_ =
         shared_ptr<int>(new int[num_edges_ * 2], [](int* p) { delete[] p; });
@@ -92,6 +86,25 @@ class LargeParsimony {
   }
 
   ~LargeParsimony() = default;
+
+  void map_char_idx(char ref_c, char& cur_c) {
+    switch (ref_c) {
+      case 'A':
+        cur_c = 0;
+        break;
+      case 'C':
+        cur_c = 1;
+        break;
+      case 'G':
+        cur_c = 2;
+        break;
+      case 'T':
+        cur_c = 3;
+        break;
+      default:
+        break;
+    }
+  }
   // Define Small Parsimony Logics
   int run_small_parsimony_string(int num_char_trees, char* rooted_char_list,
                                  int* rooted_directional_tree,
@@ -423,11 +436,9 @@ class LargeParsimony {
                                  cur_rooted_directional_idx_arr.get(),
                                  cur_rooted_directional_tree.get(), num_nodes_);
     for (int i = 0; i < rooted_char_list_len_; i++) {
-      char cur_c = rooted_char_list_.get()[i];
-      // preprocess rooted_char_list, converti it from char to char(int)
-      if (cur_c == 'A' || cur_c == 'C' || cur_c == 'G' || cur_c == 'T') {
-        cur_rooted_char_list.get()[i] = map_char_idx_.get()[cur_c - 'A'];
-      }
+      char ref_c = rooted_char_list_.get()[i];
+      char& cur_c = cur_rooted_char_list.get()[i];
+      map_char_idx(ref_c, cur_c);
     }
     for (int i = 0; i < num_nodes_; i++) {
       cur_string_list.get()[i] = "";
@@ -557,14 +568,9 @@ class LargeParsimony {
                                          cur_rooted_directional_tree.get(),
                                          num_nodes_);
             for (int i = 0; i < rooted_char_list_len_; i++) {
-              char cur_c = rooted_char_list_.get()[i];
-              // preprocess rooted_char_list, converti it from char to
-              // char(int)
-              if (cur_c == 'A' || cur_c == 'C' || cur_c == 'G' ||
-                  cur_c == 'T') {
-                cur_rooted_char_list.get()[i] =
-                    map_char_idx_.get()[cur_c - 'A'];
-              }
+              char ref_c = rooted_char_list_.get()[i];
+              char& cur_c = cur_rooted_char_list.get()[i];
+              map_char_idx(ref_c, cur_c);
             }
             for (int i = 0; i < num_nodes_; i++) {
               cur_string_list.get()[i] = "";
