@@ -320,10 +320,12 @@ def main():
     avg_cpp_seq_time = total_cpp_seq_time / float(epoch) * 1000
     avg_cpp_par_time = total_cpp_par_time / float(epoch) * 1000
 
-    if run_python_version:
-        print("Average python time:  [{}]ms".format(avg_python_time))
-    print("Avreage cpp seq time: [{}]ms".format(avg_cpp_seq_time))
-    print("Average cpp par time: [{}]ms".format(avg_cpp_par_time))
+    # if run_python_version:
+    #     print("Average python time:  [{}]ms".format(avg_python_time))
+    # print("Avreage cpp seq time: [{}]ms".format(avg_cpp_seq_time))
+    # print("Average cpp par time: [{}]ms".format(avg_cpp_par_time))
+
+    print("speed up: [{}]".format(avg_cpp_seq_time/avg_cpp_par_time))
    
 
 if __name__ == '__main__':
