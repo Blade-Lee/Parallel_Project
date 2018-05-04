@@ -86,25 +86,6 @@ class LargeParsimony {
 
   ~LargeParsimony() = default;
 
-  void map_char_idx(char ref_c, char& cur_c) {
-    switch (ref_c) {
-      case 'A':
-        cur_c = 0;
-        break;
-      case 'C':
-        cur_c = 1;
-        break;
-      case 'G':
-        cur_c = 2;
-        break;
-      case 'T':
-        cur_c = 3;
-        break;
-      default:
-        break;
-    }
-  }
-
   int run_small_parsimony_string(int num_char_trees, char* rooted_char_list,
                                  int* rooted_directional_tree,
                                  int* rooted_directional_idx_arr,
@@ -305,9 +286,7 @@ class LargeParsimony {
     int right = tmp_neighbor_arr[tmp_undirected_idx[left]];
     int next_children = 0;
 
-    for (int i = 0; i < num_nodes + 1; ++i) {
-      tmp_directed_idx[i] = -1;
-    }
+    ispc::array_init_ispc(num_nodes + 1, tmp_directed_idx);
 
     auto temp_start = next_children;
     tmp_directed_idx[root] = temp_start;
@@ -356,6 +335,7 @@ class LargeParsimony {
     for (int i = num_leaves; i < num_nodes; i++) {
       visited[i] = false;
     }
+
     int edges_ptr = 0;
     for (int i = num_leaves; i < num_nodes; i++) {
       int a = i;
@@ -409,21 +389,18 @@ class LargeParsimony {
     shared_ptr<string> cur_string_list = shared_ptr<string>(
         new string[num_nodes_], [](string* p) { delete[] p; });
 
-    for (int i = 0; i < unrooted_undirectional_tree_len_; i++) {
-      cur_unrooted_undirectional_tree.get()[i] =
-          unrooted_undirectional_tree_.get()[i];
-    }
+    ispc::array_copy_ispc(unrooted_undirectional_tree_len_,
+                          unrooted_undirectional_tree_.get(),
+                          cur_unrooted_undirectional_tree.get());
 
     make_tree_rooted_directional(unrooted_undirectional_idx_arr_.get(),
                                  cur_unrooted_undirectional_tree.get(),
                                  cur_rooted_directional_idx_arr.get(),
                                  cur_rooted_directional_tree.get(), num_nodes_);
 
-    for (int i = 0; i < rooted_char_list_len_; i++) {
-      char ref_c = rooted_char_list_.get()[i];
-      char& cur_c = cur_rooted_char_list.get()[i];
-      map_char_idx(ref_c, cur_c);
-    }
+    ispc::map_char_idx_ispc(rooted_char_list_len_,
+                            (int8_t*)rooted_char_list_.get(),
+                            (int8_t*)cur_rooted_char_list.get());
 
     for (int i = 0; i < num_nodes_; i++) {
       cur_string_list.get()[i] = "";
@@ -555,11 +532,9 @@ class LargeParsimony {
                                          cur_rooted_directional_tree.get(),
                                          num_nodes_);
 
-            for (int i = 0; i < rooted_char_list_len_; i++) {
-              char ref_c = rooted_char_list_.get()[i];
-              char& cur_c = cur_rooted_char_list.get()[i];
-              map_char_idx(ref_c, cur_c);
-            }
+            ispc::map_char_idx_ispc(rooted_char_list_len_,
+                                    (int8_t*)rooted_char_list_.get(),
+                                    (int8_t*)cur_rooted_char_list.get());
 
             for (int i = 0; i < num_nodes_; i++) {
               cur_string_list.get()[i] = "";
