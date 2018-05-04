@@ -146,19 +146,9 @@ class LargeParsimony {
     // initialization (no need to initialize back_track_arr)
     int infinity = int(1e8);
 
-    for (int i = 0; i < num_nodes; i++) {
-      int bias = 4 * i;
-      char leaf_char = rooted_char_list[i];
-      // if -1, then it is a leaf
-      int node_idx = rooted_directional_idx_arr[i];
-      for (int j = 0; j < 4; j++) {
-        // if it is a leaves && it is not the leave char, assign it to infinity
-        s_v_k.get()[bias + j] =
-            infinity * int(node_idx == -1 && j != leaf_char);
-      }
-      // all leaves are ripe already
-      tag.get()[i] = int(node_idx == -1);
-    }
+    ispc::initialize_small_parsimony_ispc(num_nodes, infinity, s_v_k.get(),
+                                          tag.get(), (int8_t*)rooted_char_list,
+                                          rooted_directional_idx_arr);
 
     // cur node
     int root = -1;
@@ -551,11 +541,6 @@ class LargeParsimony {
                                                  [](string* p) { delete[] p; });
 
             // must reinitialize below
-            // for (int i = 0; i < unrooted_undirectional_tree_len_; i++) {
-            //   cur_unrooted_undirectional_tree.get()[i] =
-            //       unrooted_undirectional_tree_.get()[i];
-            // }
-
             ispc::array_copy_ispc(unrooted_undirectional_tree_len_,
                                   unrooted_undirectional_tree_.get(),
                                   cur_unrooted_undirectional_tree.get());
