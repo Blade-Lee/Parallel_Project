@@ -20,7 +20,7 @@ using namespace std;
 
 class SmallParsimony {
   // trees here are all rooted and directed
-public:
+ public:
   // char set for each tree. All str_len sets.
   // length: (str_len)*(N+1) (N is the original nodes, 1 is the root)
   // data layout: [xxxxxxx][xxxxxxx][xxxxxxx][xxxxxxx] (xxxxxxx is the chars for
@@ -48,8 +48,11 @@ public:
 
   SmallParsimony(shared_ptr<int> idx_arr, shared_ptr<int> children_arr,
                  shared_ptr<char> char_list, int num_char_trees, int num_nodes)
-      : char_list_{char_list}, idx_arr_{idx_arr}, children_arr_{children_arr},
-        num_char_trees_{num_char_trees}, num_nodes_{num_nodes},
+      : char_list_{char_list},
+        idx_arr_{idx_arr},
+        children_arr_{children_arr},
+        num_char_trees_{num_char_trees},
+        num_nodes_{num_nodes},
         total_score_{0} {
     string_list_ = shared_ptr<string>(new string[num_nodes_ - 1],
                                       [](string *p) { delete[] p; });
@@ -59,20 +62,20 @@ public:
       char &cur_c = char_list_.get()[i];
 
       switch (cur_c) {
-      case 'A':
-        cur_c = 0;
-        break;
-      case 'C':
-        cur_c = 1;
-        break;
-      case 'G':
-        cur_c = 2;
-        break;
-      case 'T':
-        cur_c = 3;
-        break;
-      default:
-        break;
+        case 'A':
+          cur_c = 0;
+          break;
+        case 'C':
+          cur_c = 1;
+          break;
+        case 'G':
+          cur_c = 2;
+          break;
+        case 'T':
+          cur_c = 3;
+          break;
+        default:
+          break;
       }
     }
   }
@@ -132,7 +135,7 @@ public:
       tag.get()[i] = node_idx == -1;
     }
 
-    int root, min_parsimony_score = infinity, root_char_idx;
+    int root = -1, min_parsimony_score = infinity, root_char_idx = '#';
 
     // main logic
     while (true) {
@@ -225,10 +228,8 @@ public:
         char_list[left_child_id] = left_min_char_idx;
         char_list[right_child_id] = right_min_char_idx;
 
-        if (idx_arr_.get()[left_child_id] != -1)
-          q.push(left_child_id);
-        if (idx_arr_.get()[right_child_id] != -1)
-          q.push(right_child_id);
+        if (idx_arr_.get()[left_child_id] != -1) q.push(left_child_id);
+        if (idx_arr_.get()[right_child_id] != -1) q.push(right_child_id);
       }
     }
     return min_parsimony_score;

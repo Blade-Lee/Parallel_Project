@@ -283,7 +283,7 @@ def main():
         cpp_seq_end_time = time.time()
 
         cpp_omp_start_time = time.time()
-        # run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
+        run_cpp_omp(new_input_file, cpp_omp_outfile, num_threads)
         cpp_omp_end_time = time.time()
 
         total_python_time += python_end_time - python_start_time
@@ -291,7 +291,8 @@ def main():
         total_cpp_omp_time += cpp_omp_end_time - cpp_omp_start_time
 
         result = compare_two_files(python_outfile, cpp_seq_outfile)
-        # result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
+        print(result)
+        result = compare_two_files(cpp_seq_outfile, cpp_omp_outfile)
         print(result)
 
     avg_python_time = total_python_time / float(epoch) * 1000

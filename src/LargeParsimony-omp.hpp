@@ -85,7 +85,7 @@ class LargeParsimony {
                  shared_ptr<int> unrooted_undirectional_idx_arr,
                  shared_ptr<char> rooted_char_list, int num_nodes,
                  int num_leaves, int num_char_trees, int num_threads) {
-    cout << "Large Parsimony constructed." << endl;
+    // cout << "Large Parsimony constructed." << endl;
 
     this->num_threads = num_threads;
     this->num_nodes = num_nodes;
@@ -118,7 +118,7 @@ class LargeParsimony {
                                      [](bool* p) { delete[] p; });
   }
 
-  ~LargeParsimony() { cout << "Large Parsimony deconstructed." << endl; }
+  ~LargeParsimony() = default;
   // Define Small Parsimony Logics
   int run_small_parsimony_string(int num_char_trees, char* rooted_char_list,
                                  int* rooted_directional_tree,
@@ -525,9 +525,10 @@ class LargeParsimony {
         int length = this->num_edges * 2;
         int i = 0;
         omp_set_num_threads(this->num_threads);
-#pragma omp parallel for private(                                       \
-    i, cur_unrooted_undirectional_tree, cur_rooted_directional_idx_arr, \
-    cur_rooted_directional_tree, cur_rooted_char_list, cur_string_list)
+#pragma omp parallel for private(i, cur_unrooted_undirectional_tree, \
+                                 cur_rooted_directional_idx_arr,     \
+                                 cur_rooted_directional_tree,        \
+                                 cur_rooted_char_list, cur_string_list)
         for (i = 0; i < length; i += 2) {
           int a = this->edges.get()[i];
           int b = this->edges.get()[i + 1];
