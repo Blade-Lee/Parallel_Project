@@ -17,6 +17,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include "parsimony_ispc.h"
 #endif /* LargeParsimony_hpp */
 
 using namespace std;
@@ -550,10 +551,14 @@ class LargeParsimony {
                                                  [](string* p) { delete[] p; });
 
             // must reinitialize below
-            for (int i = 0; i < unrooted_undirectional_tree_len_; i++) {
-              cur_unrooted_undirectional_tree.get()[i] =
-                  unrooted_undirectional_tree_.get()[i];
-            }
+            // for (int i = 0; i < unrooted_undirectional_tree_len_; i++) {
+            //   cur_unrooted_undirectional_tree.get()[i] =
+            //       unrooted_undirectional_tree_.get()[i];
+            // }
+
+            ispc::array_copy_ispc(unrooted_undirectional_tree_len_,
+                                  unrooted_undirectional_tree_.get(),
+                                  cur_unrooted_undirectional_tree.get());
 
             // writed to cur_unrooted_undirectional_tree
             nearest_neighbor_interchage(a, b, a_child, b_child,
