@@ -9,8 +9,277 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <cassert>
+#include <cstdarg>
+#include <cstdio>
+
+#if defined(__APPLE__)
+//  #if defined(__x86_64__)
+#if 0
+#include <sys/sysctl.h>
+#else
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#endif // __x86_64__ or not
+
+#elif _WIN32
+#include <time.h>
+#include <windows.h>
+#else
+#include <string.h>
+#include <sys/time.h>
+#endif
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>  // fprintf
+#include <stdlib.h> // exit
+
+#if TIMING
+#define timing_get_start_time(...) get_start_time(__VA_ARGS__)
+#define timing_get_end_time(...) get_end_time(__VA_ARGS__)
+#define timing_add_record_list(...) add_record_list(__VA_ARGS__)
+#define timing_free_record_list(...) free_record_list(__VA_ARGS__)
+#define timing_print_record_info(...) print_record_info(__VA_ARGS__)
+#else
+#define timing_get_start_time(...)
+#define timing_get_end_time(...)
+#define timing_add_record_list(...)
+#define timing_free_record_list(...)
+#define timing_print_record_info(...)
+#endif
 
 using namespace std;
+
+// Every time a new enum is added, please add corresponding string to method
+// map_record_to_string() function in cycletimer.c
+typedef enum { READ_FILE = 0, LAST } record_type_t;
+
+typedef struct record {
+  double time;
+  record_type_t record_type;
+  struct record *next;
+} record_node_t;
+
+typedef struct {
+  double start_time;
+  double end_time;
+} time_pair_t;
+
+typedef uint64_t SysClock;
+
+static record_node_t *global_record_head = NULL;
+static time_pair_t global_time_pair;
+
+//////////
+// Return the current CPU time, in terms of clock ticks.
+// Time zero is at some arbitrary point in the past.
+static SysClock currentTicks() {
+//#if defined(__APPLE__) && !defined(__x86_64__)
+#if defined(__APPLE__)
+  return mach_absolute_time();
+#elif defined(_WIN32)
+  LARGE_INTEGER qwTime;
+  QueryPerformanceCounter(&qwTime);
+  return qwTime.QuadPart;
+#elif defined(__x86_64__)
+  unsigned int a, d;
+  asm volatile("rdtsc" : "=a"(a), "=d"(d));
+  return ((uint64_t)d << 32) + a;
+#elif defined(__ARM_NEON__) && 0 // mrc requires superuser.
+  unsigned int val;
+  asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(val));
+  return val;
+#else
+  timespec spec;
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &spec);
+  return (uint64_t)spec.tv_sec * 1000 * 1000 * 1000 + spec.tv_nsec;
+#endif
+}
+
+//////////
+// Return the conversion from ticks to seconds.
+static double secondsPerTick() {
+  static bool initialized = false;
+  static double secondsPerTick_val;
+  if (initialized)
+    return secondsPerTick_val;
+#if defined(__APPLE__)
+#if 0
+  //  #ifdef __x86_64__
+    int args[] = {CTL_HW, HW_CPU_FREQ};
+    unsigned int Hz;
+    size_t len = sizeof(Hz);
+    if (sysctl(args, 2, &Hz, &len, NULL, 0) != 0) {
+	fprintf(stderr, "Failed to initialize secondsPerTick_val!\n");
+	exit(-1);
+    }
+    secondsPerTick_val = 1.0 / (double) Hz;
+#else
+  mach_timebase_info_data_t time_info;
+  mach_timebase_info(&time_info);
+
+  // Scales to nanoseconds without 1e-9f
+  secondsPerTick_val =
+      (1e-9 * (double)time_info.numer) / (double)time_info.denom;
+#endif // x86_64 or not
+#elif defined(_WIN32)
+  LARGE_INTEGER qwTicksPerSec;
+  QueryPerformanceFrequency(&qwTicksPerSec);
+  secondsPerTick_val = 1.0 / (double)qwTicksPerSec.QuadPart;
+#else
+  FILE *fp = fopen("/proc/cpuinfo", "r");
+  char input[1024];
+  if (!fp) {
+    fprintf(stderr, "cycletimer failed: couldn't find /proc/cpuinfo.");
+    exit(-1);
+  }
+  // In case we don't find it, e.g. on the N900
+  secondsPerTick_val = 1e-9;
+  while (!feof(fp) && fgets(input, 1024, fp)) {
+    // NOTE(boulos): Because reading cpuinfo depends on dynamic
+    // frequency scaling it's better to read the @ sign first
+    float GHz, MHz;
+    if (strstr(input, "model name")) {
+      char *at_sign = strstr(input, "@");
+      if (at_sign) {
+        char *after_at = at_sign + 1;
+        char *GHz_str = strstr(after_at, "GHz");
+        char *MHz_str = strstr(after_at, "MHz");
+        if (GHz_str) {
+          *GHz_str = '\0';
+          if (1 == sscanf(after_at, "%f", &GHz)) {
+            // printf("GHz = %f\n", GHz);
+            secondsPerTick_val = 1e-9f / GHz;
+            break;
+          }
+        } else if (MHz_str) {
+          *MHz_str = '\0';
+          if (1 == sscanf(after_at, "%f", &MHz)) {
+            // printf("MHz = %f\n", MHz);
+            secondsPerTick_val = 1e-6f / GHz;
+            break;
+          }
+        }
+      }
+    } else if (1 == sscanf(input, "cpu MHz : %f", &MHz)) {
+      // printf("MHz = %f\n", MHz);
+      secondsPerTick_val = 1e-6f / MHz;
+      break;
+    }
+  }
+  fclose(fp);
+#endif
+
+  initialized = true;
+  return secondsPerTick_val;
+}
+
+//////////
+// Return the current CPU time, in terms of seconds.
+// This is slower than currentTicks().  Time zero is at
+// some arbitrary point in the past.
+inline double currentSeconds() { return currentTicks() * secondsPerTick(); }
+
+void print_msg(const char *fmt, ...) {
+  va_list ap;
+  bool got_newline = fmt[strlen(fmt) - 1] == '\n';
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  if (!got_newline)
+    fprintf(stderr, "\n");
+}
+
+inline void get_start_time() {
+  global_time_pair.start_time = currentTicks() * secondsPerTick();
+}
+
+inline void get_end_time() {
+  global_time_pair.end_time = currentTicks() * secondsPerTick();
+}
+
+void add_record_list(record_type_t record_type) {
+  record_node_t *new_node = (record_node_t *)malloc(sizeof(record_node_t));
+  new_node->time = global_time_pair.end_time - global_time_pair.start_time;
+  assert(new_node->time > 0.000000000000001);
+  new_node->record_type = record_type;
+  new_node->next = NULL;
+
+  if (!(global_record_head)) {
+    global_record_head = new_node;
+    return;
+  }
+
+  new_node->next = global_record_head->next;
+  global_record_head->next = new_node;
+}
+
+void free_record_list() {
+  if (!global_record_head)
+    return;
+
+  record_node_t *next = global_record_head->next;
+
+  while (true) {
+    free(global_record_head);
+    if (!next)
+      break;
+    global_record_head = next;
+    next = global_record_head->next;
+  }
+}
+
+string map_record_to_string(record_type_t record_type) {
+  switch (record_type) {
+  case (READ_FILE):
+    return "read_graph";
+  default:
+    return "Unknown record type";
+  }
+}
+
+void print_record_info() {
+  if (!global_record_head) {
+    print_msg("No info to be printed!\n");
+  }
+
+  int total_enums = LAST;
+  double total_time = 0.0;
+  double *time_accumulate = (double *)malloc(total_enums * sizeof(double));
+
+  int i;
+  for (i = 0; i < total_enums; i++) {
+    time_accumulate[i] = 0.0;
+  }
+
+  record_node_t *temp = global_record_head;
+  while (temp) {
+    time_accumulate[temp->record_type] += temp->time;
+    total_time += temp->time;
+    temp = temp->next;
+  }
+
+  print_msg("*******************************************************\n"
+            "Time usage distribution:\n"
+            "*******************************************************\n");
+
+  for (i = 0; i < total_enums; i++) {
+    if (time_accumulate[i] > 0.00000001) {
+      print_msg("| %-20s | %10.2fms | %10.2f%% |\n",
+                map_record_to_string((record_type_t)i).c_str(),
+                time_accumulate[i] * 1000,
+                time_accumulate[i] / total_time * 100);
+    }
+  }
+
+  print_msg("*******************************************************\n"
+            "Total time used: %.2fms\n"
+            "*******************************************************\n",
+            total_time * 1000);
+
+  free_record_list();
+}
 
 /**
  * Read lines from a file

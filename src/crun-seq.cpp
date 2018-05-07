@@ -9,9 +9,15 @@
 #include <fstream>
 #include <iostream>
 #include "LargeParsimony.hpp"
+
+#ifndef TIMING
+#define TIMING 0
+#endif
+
 #include "util.h"
 
 void runBaseline(string file_name, string outfile_name) {
+  timing_get_start_time();
   auto lines = readLines(file_name);
   int num_leaves = stoi(lines.front());
   int cur_leave = num_leaves - 1;
@@ -32,6 +38,9 @@ void runBaseline(string file_name, string outfile_name) {
 
     connectNeighborPair(neighbors, first, second);
   }
+
+  timing_get_end_time();
+  timing_add_record_list(READ_FILE);
 
   int num_char_trees = (assign.begin()->first).length();
 
@@ -110,4 +119,7 @@ void runBaseline(string file_name, string outfile_name) {
   myfile.close();
 }
 
-int main(int argc, const char *argv[]) { runBaseline(argv[1], argv[2]); }
+int main(int argc, const char *argv[]) {
+  runBaseline(argv[1], argv[2]);
+  timing_print_record_info();
+}
