@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iostream>
 #include "LargeParsimony-omp.hpp"
-#include "util.h"
 
 void runBaseline(string file_name, string outfile_name, int num_threads) {
   auto lines = readLines(file_name);
@@ -112,4 +111,5 @@ void runBaseline(string file_name, string outfile_name, int num_threads) {
 int main(int argc, const char *argv[]) {
   // input, output, num_threads
   runBaseline(argv[1], argv[2], std::stoi(argv[3]));
+  timing_print_record_info();
 }

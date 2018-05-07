@@ -20,7 +20,7 @@
 #else
 #include <mach/mach.h>
 #include <mach/mach_time.h>
-#endif // __x86_64__ or not
+#endif  // __x86_64__ or not
 
 #elif _WIN32
 #include <time.h>
@@ -32,8 +32,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>  // fprintf
-#include <stdlib.h> // exit
+#include <stdio.h>   // fprintf
+#include <stdlib.h>  // exit
 
 #if TIMING
 #define timing_get_start_time(...) get_start_time(__VA_ARGS__)
@@ -86,7 +86,7 @@ static SysClock currentTicks() {
   unsigned int a, d;
   asm volatile("rdtsc" : "=a"(a), "=d"(d));
   return ((uint64_t)d << 32) + a;
-#elif defined(__ARM_NEON__) && 0 // mrc requires superuser.
+#elif defined(__ARM_NEON__) && 0  // mrc requires superuser.
   unsigned int val;
   asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(val));
   return val;
@@ -102,8 +102,7 @@ static SysClock currentTicks() {
 static double secondsPerTick() {
   static bool initialized = false;
   static double secondsPerTick_val;
-  if (initialized)
-    return secondsPerTick_val;
+  if (initialized) return secondsPerTick_val;
 #if defined(__APPLE__)
 #if 0
   //  #ifdef __x86_64__
@@ -122,7 +121,7 @@ static double secondsPerTick() {
   // Scales to nanoseconds without 1e-9f
   secondsPerTick_val =
       (1e-9 * (double)time_info.numer) / (double)time_info.denom;
-#endif // x86_64 or not
+#endif  // x86_64 or not
 #elif defined(_WIN32)
   LARGE_INTEGER qwTicksPerSec;
   QueryPerformanceFrequency(&qwTicksPerSec);
@@ -185,10 +184,9 @@ void print_msg(const char *fmt, ...) {
   va_list ap;
   bool got_newline = fmt[strlen(fmt) - 1] == '\n';
   va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
+  vfprintf(stdout, fmt, ap);
   va_end(ap);
-  if (!got_newline)
-    fprintf(stderr, "\n");
+  if (!got_newline) fprintf(stdout, "\n");
 }
 
 inline void get_start_time() {
@@ -216,15 +214,13 @@ void add_record_list(record_type_t record_type) {
 }
 
 void free_record_list() {
-  if (!global_record_head)
-    return;
+  if (!global_record_head) return;
 
   record_node_t *next = global_record_head->next;
 
   while (true) {
     free(global_record_head);
-    if (!next)
-      break;
+    if (!next) break;
     global_record_head = next;
     next = global_record_head->next;
   }
@@ -232,10 +228,10 @@ void free_record_list() {
 
 string map_record_to_string(record_type_t record_type) {
   switch (record_type) {
-  case (READ_FILE):
-    return "read_graph";
-  default:
-    return "Unknown record type";
+    case (READ_FILE):
+      return "read_graph";
+    default:
+      return "Unknown record type";
   }
 }
 
@@ -260,9 +256,10 @@ void print_record_info() {
     temp = temp->next;
   }
 
-  print_msg("*******************************************************\n"
-            "Time usage distribution:\n"
-            "*******************************************************\n");
+  print_msg(
+      "*******************************************************\n"
+      "Time usage distribution:\n"
+      "*******************************************************\n");
 
   for (i = 0; i < total_enums; i++) {
     if (time_accumulate[i] > 0.00000001) {
@@ -273,10 +270,11 @@ void print_record_info() {
     }
   }
 
-  print_msg("*******************************************************\n"
-            "Total time used: %.2fms\n"
-            "*******************************************************\n",
-            total_time * 1000);
+  print_msg(
+      "*******************************************************\n"
+      "Total time used: %.2fms\n"
+      "*******************************************************\n",
+      total_time * 1000);
 
   free_record_list();
 }

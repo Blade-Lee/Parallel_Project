@@ -20,6 +20,12 @@
 #include "parsimony_ispc.h"
 #endif /* LargeParsimony_hpp */
 
+#ifndef TIMING
+#define TIMING 1
+#endif
+
+#include "util.h"
+
 using namespace std;
 
 class LargeParsimony {
@@ -72,6 +78,7 @@ class LargeParsimony {
         unrooted_undirectional_tree_{unrooted_undirectional_tree},
         unrooted_undirectional_idx_arr_{unrooted_undirectional_idx_arr},
         rooted_char_list_{rooted_char_list} {
+    timing_get_start_time();
     rooted_directional_tree_ = shared_ptr<int>(
         new int[rooted_directional_tree_len_], [](int* p) { delete[] p; });
     rooted_directional_idx_arr_ =
@@ -82,6 +89,8 @@ class LargeParsimony {
         shared_ptr<int>(new int[num_edges_ * 2], [](int* p) { delete[] p; });
     visited_ =
         shared_ptr<bool>(new bool[num_nodes_], [](bool* p) { delete[] p; });
+    timing_get_end_time();
+    timing_add_record_list(READ_FILE);
   }
 
   ~LargeParsimony() = default;
