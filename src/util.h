@@ -53,7 +53,40 @@ using namespace std;
 
 // Every time a new enum is added, please add corresponding string to method
 // map_record_to_string() function in cycletimer.c
-typedef enum { READ_FILE = 0, LAST } record_type_t;
+typedef enum {
+  READ_FILE = 0,
+  CONSTRUCT,
+  INIT,
+  ALLOC,
+  GET_EDGES,
+  GET_NEIGH,
+  SMALL,
+  MINI,
+  LAST
+} record_type_t;
+
+string map_record_to_string(record_type_t record_type) {
+  switch (record_type) {
+    case (READ_FILE):
+      return "read_graph";
+    case (CONSTRUCT):
+      return "build large pars";
+    case (INIT):
+      return "large pars init";
+    case (ALLOC):
+      return "large pars alloc";
+    case (GET_EDGES):
+      return "get edges";
+    case (GET_NEIGH):
+      return "get neighbors";
+    case (SMALL):
+      return "run small parsimony";
+    case (MINI):
+      return "find minimal score";
+    default:
+      return "Unknown record type";
+  }
+}
 
 typedef struct record {
   double time;
@@ -223,15 +256,6 @@ void free_record_list() {
     if (!next) break;
     global_record_head = next;
     next = global_record_head->next;
-  }
-}
-
-string map_record_to_string(record_type_t record_type) {
-  switch (record_type) {
-    case (READ_FILE):
-      return "read_graph";
-    default:
-      return "Unknown record type";
   }
 }
 

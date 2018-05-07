@@ -21,7 +21,7 @@
 #endif /* LargeParsimony_hpp */
 
 #ifndef TIMING
-#define TIMING 1
+#define TIMING 0
 #endif
 
 #include "util.h"
@@ -79,6 +79,7 @@ class LargeParsimony {
         unrooted_undirectional_idx_arr_{unrooted_undirectional_idx_arr},
         rooted_char_list_{rooted_char_list} {
     timing_get_start_time();
+
     rooted_directional_tree_ = shared_ptr<int>(
         new int[rooted_directional_tree_len_], [](int* p) { delete[] p; });
     rooted_directional_idx_arr_ =
@@ -89,8 +90,9 @@ class LargeParsimony {
         shared_ptr<int>(new int[num_edges_ * 2], [](int* p) { delete[] p; });
     visited_ =
         shared_ptr<bool>(new bool[num_nodes_], [](bool* p) { delete[] p; });
+
     timing_get_end_time();
-    timing_add_record_list(READ_FILE);
+    timing_add_record_list(CONSTRUCT);
   }
 
   ~LargeParsimony() = default;
@@ -398,6 +400,8 @@ class LargeParsimony {
     shared_ptr<string> cur_string_list = shared_ptr<string>(
         new string[num_nodes_], [](string* p) { delete[] p; });
 
+    timing_get_start_time();
+
     ispc::array_copy_ispc(unrooted_undirectional_tree_len_,
                           unrooted_undirectional_tree_.get(),
                           cur_unrooted_undirectional_tree.get());
@@ -429,7 +433,12 @@ class LargeParsimony {
     deep_copy_push_back<string>(tmp_string_list_queue_, cur_string_list,
                                 num_nodes_);
 
+    timing_get_end_time();
+    timing_add_record_list(INIT);
+
     while (!tmp_unrooted_undirectional_tree_queue_.empty()) {
+      timing_get_start_time();
+
       // record tmp list to final list
       unrooted_undirectional_tree_queue_ =
           tmp_unrooted_undirectional_tree_queue_;
@@ -469,14 +478,24 @@ class LargeParsimony {
               new shared_ptr<string>[global_arr_len],
               [](shared_ptr<string>* p) { delete[] p; });
 
+      timing_get_end_time();
+      timing_add_record_list(ALLOC);
+
       for (auto tree_i_ptr = tree_start; tree_i_ptr != tree_end;
            ++tree_i_ptr, ++string_i_ptr) {
+        timing_get_start_time();
+
         unrooted_undirectional_tree_ = *tree_i_ptr;
         // get all edges for unrooted_undirectional_tree_
         // write to edges; visited
         get_edges_from_unrooted_undirectional_tree(
             num_leaves_, num_nodes_, unrooted_undirectional_idx_arr_.get(),
             unrooted_undirectional_tree_.get(), edges_.get(), visited_.get());
+
+        timing_get_end_time();
+        timing_add_record_list(GET_EDGES);
+
+        timing_get_start_time();
 
         // For each edge, exchange the internal edges to get 2 new trees
         int length = num_edges_ * 2;
@@ -563,7 +582,12 @@ class LargeParsimony {
             string_list_global_arr.get()[global_arr_idx] = cur_string_list;
           }
         }
+
+        timing_get_end_time();
+        timing_add_record_list(GET_NEIGH);
       }
+
+      timing_get_start_time();
       int i;
       omp_set_num_threads(num_threads_);
 #pragma omp parallel for private(i, small_parsimony_total_score)
@@ -576,6 +600,10 @@ class LargeParsimony {
         score_global_arr.get()[i] = small_parsimony_total_score;
       }
 
+      timing_get_end_time();
+      timing_add_record_list(SMALL);
+
+      timing_get_start_time();
       // record the minmal one
       for (i = 0; i < global_arr_len; i++) {
         small_parsimony_total_score = score_global_arr.get()[i];
@@ -594,6 +622,9 @@ class LargeParsimony {
                                          string_list_global_arr.get()[i]);
         }
       }
+
+      timing_get_end_time();
+      timing_add_record_list(MINI);
     }
   }
 };
